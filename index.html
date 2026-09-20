@@ -61,7 +61,7 @@ body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-f
 .contact-links a{color:var(--muted);text-decoration:none;transition:color .3s}
 .contact-links a:hover{color:var(--ink)}
 
-.index{backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:12px;z-index:60;max-width:1120px;margin:0 auto;padding:6px;border-radius:999px;display:flex;gap:4px;align-items:center;overflow-x:auto;scrollbar-width:none}
+.index{backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:12px;z-index:60;width:min(1120px,calc(100% - 24px));margin:0 auto;padding:6px;border-radius:999px;display:flex;gap:4px;align-items:center;overflow-x:auto;scrollbar-width:none}
 .index::-webkit-scrollbar{display:none}
 .index a,.index button{flex:0 0 auto;font:500 12px 'JetBrains Mono',monospace;color:var(--muted);text-decoration:none;padding:8px 14px;border-radius:999px;border:0;background:none;cursor:pointer;transition:all .3s}
 .index a:hover,.index button:hover{color:var(--ink);background:var(--hover)}
@@ -114,13 +114,13 @@ main{position:relative;z-index:1}
 .chip i{font-style:normal;color:var(--muted);margin-right:8px}
 .chip.stat{background:var(--ink);color:var(--inv);border-color:var(--ink)}
 .chip.stat i{color:inherit;opacity:.65}
-.board{overflow-x:auto;padding-bottom:6px;min-height:230px}
+.board{overflow-x:auto;padding-bottom:6px;min-height:250px}
 .cells{display:flex;gap:6px;align-items:flex-end;width:max-content;max-width:none;margin:0 auto;padding:0 4px}
 .cell{flex:0 0 42px;display:flex;flex-direction:column;align-items:stretch;text-align:center;transition:opacity .25s}
 .cell .val{font:500 12px 'JetBrains Mono',monospace;height:22px;line-height:22px}
 .cell .bar{transition:height .25s,background .25s}
 .cell .idx{font:400 11px 'JetBrains Mono',monospace;color:var(--muted);margin-top:6px}
-.cell .ptr{font:500 10px 'JetBrains Mono',monospace;line-height:1.25;min-height:34px;padding-top:2px;white-space:nowrap}
+.cell .ptr{font:500 10px 'JetBrains Mono',monospace;line-height:1.25;min-height:54px;padding-top:2px;white-space:nowrap}
 
 .bar,.sw{background:var(--bar);border:1px solid var(--bar-line);border-radius:6px 6px 2px 2px}
 .cell.cmp .bar,.sw.cmp{background:var(--ink);border-color:var(--ink)}
@@ -131,6 +131,7 @@ main{position:relative;z-index:1}
 .cell.le .bar,.sw.le,.cell.runL .bar,.sw.runL{background:var(--bar-mid);border-color:var(--bar-line)}
 .cell.runR .bar,.sw.runR{background:repeating-linear-gradient(135deg,var(--bar-mid) 0 3px,transparent 3px 6px);border-color:var(--bar-line)}
 .cell.dim{opacity:.22}
+.sw.dim{opacity:.25}
 .cell.hole .bar,.sw.hole{background:transparent;border:1.5px dashed var(--bar-line)}
 .cell.cmp .val,.cell.found .val,.cell.swap .val,.cell.min .val,.cell.pivot .val,.cell.key .val{font-weight:700}
 
@@ -185,10 +186,11 @@ select option{background:var(--bg);color:var(--ink)}
 .nchip.on{background:var(--ink);color:var(--inv);border-color:var(--ink)}
 .nchip .lz{opacity:.35}
 .nchip .dg.hi{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px;font-weight:700}
-.rx-buckets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.rx-buckets{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px}
 .rx-b{border:1px solid var(--bar-line);border-radius:8px;padding:8px;min-height:74px;display:flex;flex-direction:column;gap:5px;align-items:flex-start}
 .rx-b.on{border:2px solid var(--ink)}
 .rx-h{font:500 11px 'JetBrains Mono',monospace;color:var(--muted)}
+.rx-b .nchip{font-size:12px;padding:4px 7px}
 
 .algo-text{display:grid;grid-template-columns:minmax(0,1fr);gap:32px;border-top:1px solid var(--line);padding-top:32px}
 .algo-text h4{font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--muted);font-weight:500;margin-bottom:12px}
@@ -202,7 +204,7 @@ select option{background:var(--bg);color:var(--ink)}
 table{border-collapse:collapse;width:100%;font-size:.9rem}
 th{font:500 12px 'JetBrains Mono',monospace;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--ink);white-space:nowrap}
 td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
-td.th{font:500 13px 'JetBrains Mono',monospace;white-space:nowrap}
+td.th{font:500 13px 'JetBrains Mono',monospace;min-width:96px}
 td.mn{color:var(--muted)}
 .tbl-title{font-weight:700;margin-bottom:8px}
 .todo{padding:32px;border-radius:4px;border-style:dashed;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.9rem}
@@ -223,12 +225,13 @@ td.mn{color:var(--muted)}
 @media (min-width:768px){
   .scroll-indicator{display:block}
   .section{padding:96px 80px 32px}
+  .index{width:min(1120px,calc(100% - 160px))}
   .hero-section{padding:80px}
   .subtitle-glass{font-size:1.25rem}
   .contact-links{font-size:1rem}
   .props{grid-template-columns:repeat(2,1fr)}
   .notation{grid-template-columns:repeat(3,1fr)}
-  .rx-buckets{grid-template-columns:repeat(10,minmax(0,1fr))}
+  .rx-buckets{grid-template-columns:repeat(5,minmax(0,1fr))}
 }
 @media (min-width:1000px){
   .viz-grid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
@@ -239,7 +242,6 @@ td.mn{color:var(--muted)}
   .algo,.def{padding:24px}
   .cheat,.grow{padding:20px}
   .g-row{grid-template-columns:64px 1fr 84px}
-  .index{margin:0 12px}
 }
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important}
@@ -438,7 +440,7 @@ function genInsertion({arr}){
       cmp++;
       const gt=a[j]>x;
       push({line:[4],marks:{...pre(),[j]:'cmp'},ptr:P(j,'j',j+1,'gap'),vars:{i:i+1,x,j:j+1},
-        note:`A[${j+1}] = ${a[j]} ${gt?'>':'≤'} x = ${x}? ${gt?'Yes, shift it one place right.':`No, stop. x belongs at position ${j+2}.`}`});
+        note:`A[${j+1}] = ${a[j]} > x = ${x}? ${gt?'Yes, shift it one place right.':`No, stop. x belongs at position ${j+2}.`}`});
       if(!gt)break;
       a[j+1]=a[j];mv++;view[j+1]=a[j];view[j]=null;j--;
       push({line:[5,6],marks:{...pre(),[j+2]:'swap'},ptr:P(j,'j',j+1,'gap'),vars:{i:i+1,x,j:j+1},note:`A[${j+3}] ← A[${j+2}]. The gap moves left. j ← ${j+1}.`});
@@ -650,7 +652,7 @@ const ALGOS=[
  what:`Bubble Sort repeatedly compares adjacent elements and interchanges them if they are in the wrong order. This version scans from right to left, so after each pass the smallest element of the unsorted portion moves toward the beginning. It also uses the flag sorted to stop early when a complete pass makes no interchanges.`,
  key:`The early-exit flag is what makes the best case Θ(n): sorted input finishes after a single pass.`,
  pseudo:[[0,'i ← 1; sorted ← false'],[0,'while i ≤ n − 1 and not sorted'],[1,'sorted ← true'],[1,'for j ← n down to i + 1'],[2,'if A[j] < A[j−1] then'],[3,'interchange A[j] and A[j−1]'],[3,'sorted ← false'],[2,'end if'],[1,'end for'],[1,'i ← i + 1'],[0,'end while']],
- cx:[['Best','Θ(n)','Already sorted: one pass and the flag stops the loop.'],['Average','Θ(n²)',''],['Worst','Θ(n²)',''],['Space','Θ(1)','Sorts in place.']],
+ cx:[['Best','Θ(n)','Already sorted: one pass and the flag stops the loop.'],['Average','Θ(n²)','—'],['Worst','Θ(n²)','—'],['Space','Θ(1)','Sorts in place.']],
  notes:[],tables:[],
  sum:['Θ(n)','Θ(n²)','Θ(n²)','Θ(1)','In place, early exit'],
  viz:{gen:genBubble,arr:DEF,maxLen:14,
@@ -669,7 +671,7 @@ const ALGOS=[
  notes:[],tables:[],
  sum:['Θ(kn)','Θ(kn)','Θ(kn)','Θ(n)','Digit-based, no comparisons'],
  viz:{gen:genRadix,radix:true,arr:[170,45,75,90,802,24,2,66],maxLen:10,maxVal:9999,
-  legend:[['sorted','the list L'],['cmp','current digit position underlined']],
+  legend:[['','Underlined digit = the digit used in this pass'],['','Filled chip = the element a being placed']],
   presets:[{l:'Random 3-digit',f:s=>{s.arr=randArr(8,1,999);}},{l:'Random 2-digit',f:s=>{s.arr=randArr(8,1,99);}}]}},
 
 {id:'quick',short:'Quick',group:'Sorting',tag:'Algorithms 5.5 and 5.6',name:'Quick Sort',tagline:'Split around a pivot, then sort each side recursively.',
@@ -677,7 +679,7 @@ const ALGOS=[
  what:`Split takes A[low..high] and uses A[low] as the pivot. It scans the remaining elements with j, while i marks the boundary between elements ≤ the pivot and elements > the pivot. Whenever A[j] ≤ x, i is increased and A[i] and A[j] are interchanged. After the scan the pivot is exchanged with A[i], which puts it in its correct position w = i. Quicksort then sorts the left and right subarrays recursively. Unlike Mergesort there is no combine step: the split already places the pivot correctly.`,
  key:`Balanced splits give Θ(n log n). Highly unbalanced splits, for example an already sorted array, give Θ(n²).`,
  pseudo:[[0,'procedure quicksort(A, low, high)'],[1,'if low < high then'],[2,'split(A[low..high], w)   {w = new position of A[low]}'],[2,'quicksort(A, low, w − 1)'],[2,'quicksort(A, w + 1, high)'],[1,'end if'],[0,'procedure split(A[low..high])'],[1,'i ← low; x ← A[low]'],[1,'for j ← low + 1 to high'],[2,'if A[j] ≤ x then'],[3,'i ← i + 1'],[3,'if i ≠ j then interchange A[i] and A[j]'],[2,'end if'],[1,'end for'],[1,'interchange A[low] and A[i]'],[1,'w ← i; return A and w']],
- cx:[['Best','Θ(n log n)','Partitions are approximately equal.'],['Average','Θ(n log n)',''],['Worst','Θ(n²)','Partitions are highly unbalanced, such as when the array is already sorted.'],['Space','O(n) worst case','Sorts in place, but the recursive calls need O(n) space in the worst case.'],['Split alone','Θ(n)','Exactly n − 1 comparisons and Θ(1) space.']],
+ cx:[['Best','Θ(n log n)','Partitions are approximately equal.'],['Average','Θ(n log n)','—'],['Worst','Θ(n²)','Partitions are highly unbalanced, such as when the array is already sorted.'],['Space','O(n) worst case','Sorts in place, but the recursive calls need O(n) space in the worst case.'],['Split alone','Θ(n)','Exactly n − 1 comparisons and Θ(1) space.']],
  notes:[],tables:[],
  sum:['Θ(n log n)','Θ(n log n)','Θ(n²)','O(n)','In place, recursive'],
  viz:{gen:genQuick,arr:DEF,maxLen:14,
@@ -756,7 +758,7 @@ function buildViz(host,cfg){
      <select aria-label="Speed"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select>
      <span class="count"></span>
    </div>
-   <div class="legend">${(cfg.legend||[]).map(([c,l])=>`<span class="lg"><i class="sw ${c}"></i>${esc(l)}</span>`).join('')}</div>`;
+   <div class="legend">${(cfg.legend||[]).map(([c,l])=>`<span class="lg">${c?`<i class="sw ${c}"></i>`:''}${esc(l)}</span>`).join('')}</div>`;
   const $=s=>host.querySelector(s);
   const inArr=$('.in.arr'),inX=$('.in.x'),hint=$('.hint'),range=$('input[type=range]'),playBtn=$('[data-a=play]');
   const chipsEl=$('.chips'),boardEl=$('.board'),noteEl=$('.note'),extraEl=$('.extra'),countEl=$('.count');
@@ -832,6 +834,10 @@ function pseudoHtml(lines){
 function tableHtml(head,rows,cls){
   return `<div class="tbl-wrap"><table><thead><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i===1&&cls?'th':(i===2?'mn':'')}">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
+function cheatHtml(){
+  const head=['Algorithm','Best','Average','Worst','Space','Note'];
+  return `<div class="tbl-wrap"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${ALGOS.map(a=>`<tr><td><b>${esc(a.name)}</b></td>${a.sum.slice(0,4).map(c=>`<td class="th">${esc(c)}</td>`).join('')}<td class="mn">${esc(a.sum[4])}</td></tr>`).join('')}</tbody></table></div>`;
+}
 function algoHtml(a){
   const head=`<div class="card-header"><div><div class="project-type">${esc(a.tag)}</div><h3 class="card-title">${esc(a.name)}</h3><p class="card-subtitle">${esc(a.tagline)}</p></div>${a.io?`<div class="io mono"><div><b>Input</b>${esc(a.io[0])}</div><div><b>Output</b>${esc(a.io[1])}</div></div>`:''}</div>`;
   if(a.later)return `<article class="glass-layer-strong algo later" id="${a.id}">${head}<div class="glass-layer todo">Notes not written yet. Add this once it is covered in class.</div></article>`;
@@ -861,7 +867,7 @@ function renderPage(){
     h+=`<section class="section" id="${id}">${secHead(id+'-h',g,sub)}${ALGOS.filter(a=>a.group===g).map(algoHtml).join('')}</section>`;
   });
   h+=`<section class="section" id="cheat">${secHead('cheat-h','Complexity cheat sheet','Time complexity by case. Θ is the tight bound.')}
-    <div class="glass-layer-strong cheat">${tableHtml(['Algorithm','Best','Average','Worst','Space','Note'],ALGOS.map(a=>[a.name,...a.sum]),false).replace(/<td class="">/g,'<td class="th">')}</div>
+    <div class="glass-layer-strong cheat">${cheatHtml()}</div>
     <div class="glass-layer-strong grow"><h3 style="font-size:1.25rem;font-weight:700">Growth of n, log n, n log n and n²</h3>
       <input type="range" id="gn" min="2" max="1000" value="100" aria-label="Input size n">
       <div id="grows"></div><p class="g-cap">n = <span id="gnv">100</span>. Bars use a log scale so all four fit on screen.</p></div>
