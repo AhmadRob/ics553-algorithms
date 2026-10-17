@@ -246,8 +246,28 @@ td.mn{color:var(--muted)}
   .cheat,.grow{padding:20px}
   .g-row{grid-template-columns:64px 1fr 84px}
 }
+/* ---------- animations ---------- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes subtlePulse{0%,100%{box-shadow:0 0 0 0 rgba(10,10,10,.12)}50%{box-shadow:0 0 0 8px rgba(10,10,10,0)}}
+
+.hero-section h1{animation:fadeUp .9s cubic-bezier(.22,1,.36,1) both}
+.subtitle-glass{animation:fadeUp .9s cubic-bezier(.22,1,.36,1) .15s both}
+.contact-links{animation:fadeUp .9s cubic-bezier(.22,1,.36,1) .3s both}
+.index{animation:slideDown .5s cubic-bezier(.22,1,.36,1) .5s both}
+
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .6s cubic-bezier(.22,1,.36,1),transform .6s cubic-bezier(.22,1,.36,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+.algo,.def,.prop,.cheat,.grow{transition:transform .3s cubic-bezier(.22,1,.36,1),box-shadow .3s}
+.algo:hover,.def:hover,.cheat:hover,.grow:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.08)}
+
+.cross-link{animation:subtlePulse 3s ease-in-out infinite}
+
 @media (prefers-reduced-motion:reduce){
-  *{transition:none!important}
+  *{transition:none!important;animation:none!important}
+  .reveal{opacity:1;transform:none}
   .liquid-blob{display:none}
 }
 </style>
@@ -273,7 +293,7 @@ td.mn{color:var(--muted)}
   <nav class="glass-layer-strong index" id="index" aria-label="Sections"></nav>
   <main id="app"></main>
 
-  <div style="text-align:center;padding:48px 24px 0"><a href="Reductions.html" class="btn" style="font-size:1rem;padding:14px 32px;border-radius:999px;text-decoration:none;display:inline-block">Continue to Reductions &amp; NP &rarr;</a></div>
+  <div style="text-align:center;padding:48px 24px 0"><a href="Reductions.html" class="btn cross-link" style="font-size:1rem;padding:14px 32px;border-radius:999px;text-decoration:none;display:inline-block">Continue to Reductions &amp; NP &rarr;</a></div>
 
   <footer class="footer">
     <p class="footer-text">KFUPM ICS 553 notes by Ahmed Abualrob</p>
@@ -1083,6 +1103,14 @@ function initEffects(){
   }
   window.addEventListener('scroll',onScroll,{passive:true});onScroll();
   let mx=0,my=0,raf=0;window.addEventListener('mousemove',e=>{mx=e.clientX-300;my=e.clientY-300;if(!raf)raf=requestAnimationFrame(()=>{blob.style.transform=`translate3d(${mx}px,${my}px,0)`;raf=0;});},{passive:true});
+
+  /* scroll-reveal */
+  const reveals=document.querySelectorAll('.sec-head, .algo, .def, .cheat, .grow, .notation');
+  reveals.forEach((el,i)=>{el.classList.add('reveal');el.style.transitionDelay=`${Math.min(i%4,3)*0.07}s`;});
+  if('IntersectionObserver' in window){
+    const rio=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');rio.unobserve(e.target);}});},{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+    reveals.forEach(el=>rio.observe(el));
+  }else{reveals.forEach(el=>el.classList.add('visible'));}
 }
 
 if(typeof document==='undefined'){
