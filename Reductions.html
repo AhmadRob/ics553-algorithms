@@ -1370,7 +1370,7 @@ const MAPN={
   clq:{l:'Clique',x:335,y:35},is:{l:'IS',x:335,y:108},vc:{l:'VC',x:485,y:70},sc:{l:'Set Cover',x:645,y:70},
   c3:{l:'3Color',x:485,y:185},hc:{l:'HC',x:485,y:255},ss:{l:'Subset Sum',x:485,y:330},
   tsp:{l:'TSP',x:645,y:235},dhc:{l:'Directed HC',x:645,y:285},kn:{l:'Knapsack',x:645,y:335}};
-const MAPE=[['circ','sat'],['sat','s3'],['s3','sat'],['sat','clq'],['sat','vc'],['clq','vc'],['vc','clq'],['vc','is'],['is','vc'],['clq','is',1],['is','clq'],['vc','sc'],['s3','vc',1],['s3','c3',1],['s3','hc'],['s3','ss'],['hc','tsp'],['hc','dhc',1],['ss','kn']];
+const MAPE=[['circ','sat'],['sat','s3'],['s3','sat'],['sat','clq'],['sat','vc'],['clq','vc'],['vc','clq'],['vc','is'],['is','vc'],['clq','is',1],['is','clq'],['is','hc'],['vc','sc'],['s3','vc',1],['s3','c3',1],['s3','hc'],['s3','ss'],['hc','tsp'],['hc','dhc',1],['ss','kn']];
 function mapSvg(sel){
   const nw=id=>Math.max(46,MAPN[id].l.length*7.4+20),nh=26;
   const to=new Set(),from=new Set();
