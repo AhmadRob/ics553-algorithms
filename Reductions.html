@@ -197,9 +197,10 @@ select option{background:var(--bg);color:var(--ink)}
 .algo-text p{line-height:1.65;color:var(--ink);margin-bottom:16px;max-width:64ch}
 .key{padding:20px 24px;border-radius:4px;margin-bottom:16px}
 .key p{margin:0;font-weight:500}
-.nt{margin-bottom:16px}
-.nt b{display:block;margin-bottom:4px;font-weight:700}
-.nt span{color:var(--muted);line-height:1.6;display:block;max-width:64ch}
+.nt{margin-bottom:20px;padding:16px 20px 16px 22px;border-left:3px solid var(--muted);border-radius:0 8px 8px 0;background:color-mix(in srgb,var(--ink) 4%,transparent);backdrop-filter:blur(6px);max-width:68ch}
+.nt b{display:block;margin-bottom:6px;font-weight:700;font-size:.85rem;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+.nt span{color:var(--ink);opacity:.78;line-height:1.65;display:block;font-size:.92rem}
+.prof-intro{margin:40px auto 28px;padding:20px 24px;border-radius:12px;background:color-mix(in srgb,var(--ink) 4%,transparent);backdrop-filter:blur(6px);max-width:68ch;line-height:1.65;font-size:.93rem;color:var(--ink);opacity:.85;border:1px solid color-mix(in srgb,var(--ink) 8%,transparent)}
 .tbl-wrap{overflow-x:auto;margin-bottom:24px}
 table{border-collapse:collapse;width:100%;font-size:.9rem}
 th{font:500 12px 'JetBrains Mono',monospace;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--ink);white-space:nowrap}
@@ -281,6 +282,12 @@ td.mn{color:var(--muted)}
 .hero-sub{margin:28px 0 0}
 select.in{padding-right:28px;cursor:pointer}
 .cap{font:400 12px 'JetBrains Mono',monospace;color:var(--muted);margin-top:12px;line-height:1.6}
+
+/* ---------- editorial note callouts ---------- */
+.nt{margin-bottom:20px;padding:16px 20px 16px 22px;border-left:3px solid var(--muted);border-radius:0 8px 8px 0;background:color-mix(in srgb,var(--ink) 4%,transparent);backdrop-filter:blur(6px);max-width:68ch}
+.nt b{display:block;margin-bottom:6px;font-weight:700;font-size:.85rem;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+.nt span{color:var(--ink);opacity:.78;line-height:1.65;display:block;font-size:.92rem}
+.prof-intro{margin:40px auto 28px;padding:20px 24px;border-radius:12px;background:color-mix(in srgb,var(--ink) 4%,transparent);backdrop-filter:blur(6px);max-width:68ch;line-height:1.65;font-size:.93rem;color:var(--ink);opacity:.85;border:1px solid color-mix(in srgb,var(--ink) 8%,transparent)}
 
 /* ---------- animations ---------- */
 @keyframes fadeUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
@@ -540,7 +547,7 @@ const TOPICS=[
   {nt:`Worth checking with the professor`,b:`The ⊇ half is standard: assuming NP ≠ Co-NP, anything in NP ∩ Co-NP outside P is NP-intermediate. The ⊆ half needs "NPI is closed under complementation", which is not a known theorem — an NP-intermediate problem is not known to have its complement in NP. Safe version to write in an exam: every problem in NP ∩ Co-NP outside P is NP-intermediate.`},
   {sub:`Relationship between the classes`},
   {p:`P sits inside both NP and Co-NP. Assuming NP ≠ Co-NP, NPC lies in NP only and Co-NPC lies in Co-NP only. The overlap NP ∩ Co-NP holds P, plus NPI problems such as factoring.`},
-  {p:`Most researchers believe NP ≠ Co-NP, but this is unproven. The professor's notes draw four candidate pictures of how the classes might sit; believing NP ≠ Co-NP rules out the two in which NP and Co-NP coincide. For the remaining two, one more fact is needed: a problem in NP ∩ Co-NP that is not in P cannot be NP-complete unless NP = Co-NP, so under that belief it must be NPI.`}],
+  {nt:`From the professor's notes`,b:`Most researchers believe NP ≠ Co-NP, but this is unproven. The notes draw four candidate pictures of how the classes might sit; believing NP ≠ Co-NP rules out the two in which NP and Co-NP coincide. For the remaining two, one more fact is needed: a problem in NP ∩ Co-NP that is not in P cannot be NP-complete unless NP = Co-NP, so under that belief it must be NPI.`}],
  [{svg:'rel'}]]},
 ];
 
@@ -597,7 +604,7 @@ const RED=[
  from:`Graph G`,to:`Weighted complete graph G′ and k`,
  problem:[`HC asks whether G has a cycle through every vertex using its edges. TSP asks whether there is a tour of weight ≤ k.`],
  construction:[`Keep the same vertex set V.`,`Build a complete graph G′ on V.`,`Edge weight is 1 if the edge is in G, and 2 if it is not.`,`Set k = |V|.`],
- k:[`A tour has exactly |V| edges, and each weighs at least 1. So weight ≤ |V| means every edge weighs exactly 1.`,`The professor's lecture notes give non-edges weight n instead of 2. Either works, and for the same reason: any weight above 1 makes a single non-edge push the tour past the threshold.`],
+ k:[`A tour has exactly |V| edges, and each weighs at least 1. So weight ≤ |V| means every edge weighs exactly 1.`,{nt:`Weight convention`,b:`The professor's lecture notes give non-edges weight n instead of 2. Either works, and for the same reason: any weight above 1 makes a single non-edge push the tour past the threshold.`}],
  inNP:[`The witness is the tour. Check that it visits every vertex once and sum the weights.`],
  fwd:[`A Hamiltonian cycle in G uses |V| edges of G. Each has weight 1. So it is a tour of weight |V| = k.`],
  bwd:[`A tour of weight ≤ |V| has |V| edges of weight ≥ 1 each. So all weigh exactly 1, and all are edges of G. It is a Hamiltonian cycle in G.`],
@@ -640,7 +647,7 @@ const RED=[
  example:[`(x ∨ y) ∧ (¬x ∨ ¬y). Here n = 2 and k = 2 + 1 + 1 = 4. Take x = T and y = F. The cover is {x, ¬y, c1y, c2¬x}. In clause 1, c1x is left out, and its connection edge to x is covered by x. In clause 2, c2¬y is left out, and its connection edge to ¬y is covered by ¬y. All 8 edges are covered with 4 vertices.`]},
 ];
 
-const HOMEWORK_INTRO=`These are the main reductions covered in the professor’s notes. The remaining ones are from the homework, but all of them are important. The two sets of notes do not agree on the list: the lecture notes name Clique → IS, 3SAT → VC and HC → directed HC, while the study guide names HC → directed HC, 3SAT → VC and 3SAT → 3Color. All four are listed below — worth confirming which set was actually assigned.`;
+const HOMEWORK_INTRO=`These are the main reductions covered in the professor's notes. The remaining ones are from the homework, but all of them are important. The two sets of notes do not agree on the list: the lecture notes name Clique → IS, 3SAT → VC and HC → directed HC, while the study guide names HC → directed HC, 3SAT → VC and 3SAT → 3Color. All four are listed below — worth confirming which set was actually assigned.`;
 const HOMEWORK=[
  [`Reduction 7`,`HC → Directed HC`],
  [`Reduction 8`,`3SAT → VC`],
@@ -1447,7 +1454,7 @@ function cardHtml(c,group){
 }
 function secHead(id,title,sub){return `<div class="sec-head" id="${id}"><h2 class="text-fluid-md">${title}</h2>${sub?`<p>${sub}</p>`:''}</div>`;}
 
-const pHtml=a=>a.map(t=>`<p>${esc(t)}</p>`).join('');
+const pHtml=a=>a.map(t=>typeof t==='object'&&t.nt?`<div class="nt"><b>${esc(t.nt)}</b><span>${esc(t.b)}</span></div>`:`<p>${esc(t)}</p>`).join('');
 function redCard(r){
   const head=`<div class="card-header"><div><div class="project-type">${esc(r.tag)}</div><h3 class="card-title">${esc(r.name)}</h3><p class="card-subtitle">${esc(r.tagline)}</p></div><div class="io mono"><div><b>From</b>${esc(r.from)}</div><div><b>To</b>${esc(r.to)}</div></div></div>`;
   const left=`<h4>Problem</h4>${pHtml(r.problem)}${r.lemma?`<h4>Lemma</h4>${pHtml(r.lemma)}`:''}<h4>Construction</h4>${r.cintro?`<p>${esc(r.cintro)}</p>`:''}<ol class="mcase-list">${r.construction.map(t=>`<li>${esc(t)}</li>`).join('')}</ol><h4>Value of k</h4>${pHtml(r.k)}`;
@@ -1476,7 +1483,7 @@ function renderPage(){
   let h='';
   SECS.forEach(S=>{
     const inner=S.id==='reductions'
-      ?glossaryCard()+RED.map(redCard).join('')+`<p class="sub-p" style="margin:48px 0 24px">${esc(HOMEWORK_INTRO)}</p>`+HOMEWORK.map(hwCard).join('')
+      ?glossaryCard()+RED.map(redCard).join('')+`<div class="prof-intro">${esc(HOMEWORK_INTRO)}</div>`+HOMEWORK.map(hwCard).join('')
       :TOPICS.filter(t=>t.sec===S.id).map(t=>cardHtml(t,t.group)).join('');
     h+=`<section class="section" id="${S.id}">${secHead(S.id+'-h',S.h,S.sub)}${inner}</section>`;
   });
@@ -1490,7 +1497,7 @@ function renderPage(){
   });
 
   const nav=document.getElementById('index');
-  nav.innerHTML=`<a href="index.html#foundations-h">Basics</a><a href="index.html#searching">Searching</a><a href="index.html#sorting">Sorting</a><a href="index.html#cheat-h">Cheat sheet</a><a href="index.html#complexity-h">Complexity</a><a href="index.html#recursion-h">Recursion</a><span class="sep"></span>`+SECS.map(S=>`<a href="#${S.id}-h" data-t="${S.id}">${S.nav}</a>`).join('')+`<button type="button" id="theme"></button>`;
+  nav.innerHTML=`<a href="index.html#foundations-h">Basics</a><a href="index.html#searching">Searching</a><a href="index.html#sorting">Sorting</a><a href="index.html#cheat-h">Cheat sheet</a><a href="index.html#complexity-h">Complexity</a><a href="index.html#recursion-h">Recursion</a><span class="sep"></span>`+SECS.map(S=>`<a href="#${S.id}-h" data-t="${S.id}">${S.nav}</a>`).join('')+`<span class="sep"></span>`+RED.map(r=>`<a href="#${r.id}" data-t="${r.id}">${r.name}</a>`).join('')+`<button type="button" id="theme"></button>`;
   const root=document.documentElement;
   const isDark=()=>root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
   const SUN='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -1502,7 +1509,7 @@ function renderPage(){
   setIcon();
 
   const links=[...nav.querySelectorAll('a[data-t]')];
-  const targets=SECS.map(S=>document.getElementById(S.id));
+  const targets=[...SECS.map(S=>document.getElementById(S.id)),...RED.map(r=>document.getElementById(r.id))];
   if('IntersectionObserver' in window){
     const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const id=e.target.id;links.forEach(l=>l.classList.toggle('on',l.dataset.t===id));const on=links.find(l=>l.dataset.t===id);if(on)nav.scrollLeft=on.offsetLeft-nav.clientWidth/2+on.offsetWidth/2;}});},{rootMargin:'-35% 0px -60% 0px'});
     targets.forEach(t=>t&&io.observe(t));
