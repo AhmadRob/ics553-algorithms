@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ICS 553 Algorithms, Visualized</title>
+<title>Algorithms | ICS 553</title>
 <meta name="description" content="KFUPM ICS 553 notes by Ahmed Abualrob: searching and sorting algorithms with step-by-step visualizers, pseudocode and complexity.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -133,6 +133,9 @@ main{position:relative;z-index:1}
 .cell.dim{opacity:.22}
 .sw.dim{opacity:.25}
 .cell.hole .bar,.sw.hole{background:transparent;border:1.5px dashed var(--bar-line)}
+.cell.edge{opacity:.5}
+.cell.edge .bar{background:transparent;border:1.5px dotted var(--bar-line)}
+.cell.edge .idx{font-style:italic}
 .cell.cmp .val,.cell.found .val,.cell.swap .val,.cell.min .val,.cell.pivot .val,.cell.key .val{font-weight:700}
 
 .aux{margin-top:18px}
@@ -256,18 +259,21 @@ td.mn{color:var(--muted)}
 
   <section class="hero-section">
     <div class="hero-content">
-      <div class="text-fluid-xl" id="heroTitle">ICS 553<br>Algorithms</div>
+      <h1 class="text-fluid-xl" id="heroTitle">ICS 553<br>Algorithms</h1>
       <div class="glass-layer subtitle-glass">Step-by-step visualizers, pseudocode and complexity in one place</div>
       <div class="contact-links mono">
         <a href="#foundations">Start reading</a>
         <a href="#linear">Jump to the visualizers</a>
         <a href="#cheat">Complexity cheat sheet</a>
+        <a href="Reductions.html">Reductions &amp; NP</a>
       </div>
     </div>
   </section>
 
   <nav class="glass-layer-strong index" id="index" aria-label="Sections"></nav>
   <main id="app"></main>
+
+  <div style="text-align:center;padding:48px 24px 0"><a href="Reductions.html" class="btn" style="font-size:1rem;padding:14px 32px;border-radius:999px;text-decoration:none;display:inline-block">Continue to Reductions &amp; NP &rarr;</a></div>
 
   <footer class="footer">
     <p class="footer-text">KFUPM ICS 553 notes by Ahmed Abualrob</p>
@@ -284,6 +290,18 @@ const asc=a=>a.slice().sort((x,y)=>x-y);
 const desc=a=>a.slice().sort((x,y)=>y-x);
 const range=(a,b)=>{const r=[];for(let i=a;i<=b;i++)r.push(i);return r;};
 function P(...args){const p={};for(let i=0;i<args.length;i+=2){const ix=args[i],lb=args[i+1];if(ix==null||ix<0)continue;p[ix]=p[ix]?p[ix]+','+lb:lb;}return p;}
+/* Like P, but keeps pointers that have moved off either end of the array, so a
+   crossed low/high pair stays visible instead of silently disappearing. */
+function PE(n,...args){
+  const ptr={},edge={};
+  for(let i=0;i<args.length;i+=2){
+    const ix=args[i],lb=args[i+1];if(ix==null)continue;
+    const side=ix<0?'left':ix>=n?'right':null;
+    if(side)edge[side]=edge[side]?edge[side]+','+lb:lb;
+    else ptr[ix]=ptr[ix]?ptr[ix]+','+lb:lb;
+  }
+  return {ptr,edge};
+}
 const allMark=(n,c)=>{const m={};for(let i=0;i<n;i++)m[i]=c;return m;};
 
 /* ---------- frame generators (each returns an array of frames) ---------- */
@@ -317,10 +335,11 @@ function genBinary({arr:a,x}){
   const dim=()=>{const m={};for(let i=0;i<n;i++)if(i<low||i>high)m[i]='dim';return m;};
   const push=o=>F.push({arr:a.slice(),marks:{},ptr:{},vars:{},line:[],note:'',visited:visited.slice(),cur:null,...o,stats:{comparisons:cmp}});
   const V=()=>({x,low:low+1,high:high+1,j:j+1});
-  push({line:[1],ptr:P(low,'low',high,'high'),vars:V(),note:`low ← 1, high ← n = ${n}, j ← 0. Searching for x = ${x}.`});
+  const PB=(...a)=>PE(n,...a);
+  push({line:[1],...PB(low,'low',high,'high'),vars:V(),note:`low ← 1, high ← n = ${n}, j ← 0. Searching for x = ${x}.`});
   while(low<=high&&j===-1){
     const mid=(low+high)>>1;visited.push(mid);
-    push({line:[2,3],marks:{...dim(),[mid]:'cmp'},ptr:P(low,'low',mid,'mid',high,'high'),cur:mid,vars:{...V(),mid:mid+1},
+    push({line:[2,3],marks:{...dim(),[mid]:'cmp'},...PB(low,'low',mid,'mid',high,'high'),cur:mid,vars:{...V(),mid:mid+1},
       note:`mid ← ⌊(${low+1} + ${high+1}) / 2⌋ = ${mid+1}. A[${mid+1}] = ${a[mid]}.`});
     cmp++;
     if(a[mid]===x){
@@ -328,17 +347,18 @@ function genBinary({arr:a,x}){
       push({line:[4],marks:{...dim(),[mid]:'found'},ptr:P(mid,'mid'),cur:mid,vars:{...V(),mid:mid+1},note:`x = A[${mid+1}], so j ← ${mid+1}. Found.`});
     }else if(x<a[mid]){
       high=mid-1;
-      push({line:[5],marks:{...dim(),[mid]:'cmp'},ptr:P(low,'low',high,'high'),cur:mid,vars:V(),
+      push({line:[5],marks:{...dim(),[mid]:'cmp'},...PB(low,'low',high,'high'),cur:mid,vars:V(),
         note:`x = ${x} < A[${mid+1}] = ${a[mid]}. Discard the right half: high ← mid − 1 = ${high+1}.`});
     }else{
       low=mid+1;
-      push({line:[6],marks:{...dim(),[mid]:'cmp'},ptr:P(low,'low',high,'high'),cur:mid,vars:V(),
+      push({line:[6],marks:{...dim(),[mid]:'cmp'},...PB(low,'low',high,'high'),cur:mid,vars:V(),
         note:`x = ${x} > A[${mid+1}] = ${a[mid]}. Discard the left half: low ← mid + 1 = ${low+1}.`});
     }
   }
   const ok=j!==-1;
   push({line:[7,8],marks:ok?{[j]:'found'}:allMark(n,'dim'),cur:ok?j:null,vars:V(),
-    note:ok?`Loop ends. return j = ${j+1}.`:`low > high, so x is not in A. return 0.`});
+    ...(ok?PB(j,'j'):PB(high,'high',low,'low')),
+    note:ok?`Loop ends. return j = ${j+1}.`:`low = ${low+1} and high = ${high+1}, so low > high: the range is empty and x is not in A. return 0.`});
   return F;
 }
 
@@ -367,7 +387,7 @@ function genMerge({arr:a,q}){
     push({line:[14],ptr:pst(),auxMarks:{[k-1]:'swap'},auxPtr:P(k,'k'),vars:{s:s+1,t:t+1,k:k+1},note:`The right run is used up, so copy the rest of the left run into B.`});
   }
   asg+=n;
-  push({line:[16],arr:B.slice(),marks:allMark(n,'sorted'),note:`A[p..r] ← B[p..r] costs n more assignments. Total assignments = 2n = ${2*n}. Comparisons = ${cmp}, which is between n₁ = ${q} and n − 1 = ${n-1}.`});
+  push({line:[16],arr:B.slice(),marks:allMark(n,'sorted'),note:`A[p..r] ← B[p..r] costs n more assignments. Total assignments = 2n = ${2*n}. Comparisons = ${cmp}, which is between min(n₁, n₂) = ${Math.min(q,n-q)} and n − 1 = ${n-1}.`});
   return F;
 }
 
@@ -599,9 +619,9 @@ const ALGOS=[
 {id:'merge',short:'Merge',group:'Sorting',tag:'Algorithm 1.3',name:'Merge',tagline:'Combine two sorted lists into one. The core step of Merge Sort.',
  io:['A[1..m] and indices p ≤ q < r, with A[p..q] and A[q+1..r] each sorted','A[p..r] holds the merged, sorted result'],
  what:`Merge takes two already sorted subarrays and combines them into one sorted array. It compares the first unmerged elements of both, puts the smaller one into a temporary array B, and moves that pointer forward. When one subarray is empty, the rest of the other is copied over. Merge does not sort the two lists. It assumes they are sorted and combines them efficiently.`,
- key:`For two nonempty subarrays of sizes n₁ and n₂ with n = n₁ + n₂: comparisons are between n₁ and n − 1, and assignments are exactly 2n.`,
+ key:`For two nonempty subarrays of sizes n₁ and n₂ with n = n₁ + n₂: comparisons are between min(n₁, n₂) and n − 1, and assignments are exactly 2n. The loop stops as soon as either run runs out, so the cheapest case is when one whole run is smaller than the other.`,
  pseudo:[[0,'Comment: B[p..r] is an auxiliary array.'],[0,'s ← p; t ← q + 1; k ← p'],[0,'while s ≤ q and t ≤ r'],[1,'if A[s] ≤ A[t] then'],[2,'B[k] ← A[s]'],[2,'s ← s + 1'],[1,'else'],[2,'B[k] ← A[t]'],[2,'t ← t + 1'],[1,'end if'],[1,'k ← k + 1'],[0,'end while'],[0,'if s = q + 1 then B[k..r] ← A[t..r]'],[0,'else B[k..r] ← A[s..q]'],[0,'end if'],[0,'A[p..r] ← B[p..r]']],
- cx:[['Comparisons','n₁ to n − 1','For balanced halves, between ⌊n/2⌋ and n − 1.'],['Assignments','2n','n into B, then n back into A.'],['Time','Θ(n)','Comparisons and assignments both grow linearly.'],['Space','Θ(n)','Uses the auxiliary array B.']],
+ cx:[['Comparisons','min(n₁, n₂) to n − 1','For balanced halves, between ⌊n/2⌋ and n − 1.'],['Assignments','2n','n into B, then n back into A.'],['Time','Θ(n)','Comparisons and assignments both grow linearly.'],['Space','Θ(n)','Uses the auxiliary array B.']],
  notes:[],tables:[],
  sum:['Θ(n)','Θ(n)','Θ(n)','Θ(n)','Combines two sorted runs'],
  viz:{gen:genMerge,merge:true,arr:[2,5,8,11,1,4,6,9],q:4,maxLen:14,
@@ -616,7 +636,7 @@ const ALGOS=[
  what:`Bottom-Up Merge Sort first treats every element as a sorted sequence of size 1. It then repeatedly merges neighbouring sequences, doubling their size each round: 1 → 2 → 4 → 8 … until the whole array is sorted. Unlike recursive Merge Sort it works iteratively from the bottom up. The Merge algorithm above is the main operation at every level.`,
  key:`Merge Sort = repeatedly merge sorted pieces. Bottom-up means starting with pieces of size 1 and doubling them.`,
  pseudo:[[0,'t ← 1'],[0,'while t < n'],[1,'s ← t; t ← 2s; i ← 0'],[1,'while i + t ≤ n'],[2,'merge(A, i + 1, i + s, i + t)'],[2,'i ← i + t'],[1,'end while'],[1,'if i + s < n then merge(A, i + 1, i + s, n)'],[0,'end while']],
- cx:[['Time','Θ(n log n)','For n a power of 2 there are log₂ n levels, and each level processes all n elements in Θ(n).'],['Comparisons','(n log n)/2 to n log n − n + 1','From the textbook bound.'],['Assignments','2n log n','Exactly.'],['Space','Θ(n)','Merge uses a temporary array.']],
+ cx:[['Time','Θ(n log n)','For n a power of 2 there are log₂ n levels, and each level processes all n elements in Θ(n).'],['Comparisons','(n log n)/2 to n log n − n + 1','From the textbook bound, for n a power of 2.'],['Assignments','2n log n','Exactly, for n a power of 2. Other n cost a little more, but still Θ(n log n).'],['Space','Θ(n)','Merge uses a temporary array.']],
  notes:[],tables:[],
  sum:['Θ(n log n)','Θ(n log n)','Θ(n log n)','Θ(n)','Not in place'],
  viz:{gen:genBottomUp,arr:DEF,maxLen:14,
@@ -638,7 +658,7 @@ const ALGOS=[
 {id:'insertion',short:'Insertion',group:'Sorting',tag:'Algorithm 1.5',name:'Insertion Sort',tagline:'Grow a sorted part by inserting one element at a time.',
  io:['An array A[1..n] of n elements','A[1..n] sorted in nondecreasing order'],
  what:`Insertion Sort builds the sorted array one element at a time. Starting from A[2], it compares the current element x with the elements before it, shifting larger elements one position to the right until the correct position for x is found. This continues until the entire array is sorted. The number of comparisons depends on the order of the input.`,
- key:`Comparisons are between n − 1 and n(n−1)/2. Element assignments = comparisons + n − 1.`,
+ key:`Comparisons are between n − 1 and n(n−1)/2. Element assignments = comparisons + n − 1, except that an element inserted at the very front exits the loop on j > 0 rather than on a comparison, so it shifts without a matching comparison.`,
  pseudo:[[0,'for i ← 2 to n'],[1,'x ← A[i]'],[1,'j ← i − 1'],[1,'while (j > 0) and (A[j] > x)'],[2,'A[j+1] ← A[j]'],[2,'j ← j − 1'],[1,'end while'],[1,'A[j+1] ← x'],[0,'end for']],
  cx:[['Best','Θ(n)','Already sorted: each element needs only 1 comparison, n − 1 in total.'],['Average','Θ(n²)','Elements typically move through part of the sorted subarray.'],['Worst','Θ(n²)','Decreasing order: every element is compared with all previous ones, n(n−1)/2 comparisons.'],['Space','Θ(1)','Sorts in place.']],
  notes:[],tables:[],
@@ -664,7 +684,7 @@ const ALGOS=[
 
 {id:'radix',short:'Radix',group:'Sorting',tag:'Algorithm 4.5',name:'Radix Sort',tagline:'Sort digit by digit, starting from the least significant one.',
  io:['A linked list of numbers L = {a₁, a₂, …, aₙ} and k, the number of digits','L sorted in nondecreasing order'],
- what:`Radix Sort sorts numbers digit by digit, starting from the least significant digit. For each digit, the numbers are distributed into 10 lists L0 to L9 according to that digit, then the lists are combined in order from L0 to L9. This repeats for all k digits. After the pass on the last digit, the numbers are fully sorted. It needs no other sorting algorithm and no recursion.`,
+ what:`Radix Sort sorts numbers digit by digit, starting from the least significant digit. For each digit, the numbers are distributed into 10 lists L0 to L9 according to that digit, then the lists are combined in order from L0 to L9. This repeats for all k digits. After the pass on the last digit, the numbers are fully sorted. It needs no other sorting algorithm and no recursion. Two conditions make it work: the numbers are non-negative integers of at most k digits (shorter ones are read with leading zeros), and each pass must be stable — appending to the end of each list and then reading the lists in order is what preserves the ordering the previous passes achieved.`,
  key:`k passes, each Θ(n), so Θ(kn). If k is constant this is Θ(n). It can be generalized to other radices, such as radix 16.`,
  pseudo:[[0,'for j ← 1 to k'],[1,'Prepare 10 empty lists L0, L1, …, L9.'],[1,'while L is not empty'],[2,'a ← next element in L. Delete a from L.'],[2,'i ← jth digit in a. Append a to list Li.'],[1,'end while'],[1,'L ← L0'],[1,'for i ← 1 to 9'],[2,'L ← L, Li   {append list Li to L}'],[1,'end for'],[0,'end for'],[0,'return L']],
  cx:[['Time','Θ(kn)','k passes, each pass takes Θ(n). With constant k this becomes Θ(n).'],['Space','Θ(n)','The 10 lists together hold all n elements.']],
@@ -704,13 +724,17 @@ function renderRadix(f){
 function renderBoard(f){
   if(f.radix)return renderRadix(f);
   const arr=f.arr,max=Math.max(...arr.filter(v=>v!=null),1);
+  const eg=f.edge||{};
+  const edgeCell=(lab,idx)=>`<div class="cell edge"><div class="val"></div><div class="bar" style="height:28px"></div><div class="idx">${idx}</div><div class="ptr">▲<br>${lab.split(',').map(esc).join('<br>')}</div></div>`;
   let h='<div class="cells">';
+  if(eg.left)h+=edgeCell(eg.left,0);
   arr.forEach((v,i)=>{
     const hole=v==null,c=f.marks[i]||'';
     const bh=hole?28:16+Math.round(v/max*100);
     const p=f.ptr[i]?'▲<br>'+f.ptr[i].split(',').map(esc).join('<br>'):'';
     h+=`<div class="cell ${hole?'hole':''} ${c}"><div class="val">${hole?'':v}</div><div class="bar" style="height:${bh}px"></div><div class="idx">${i+1}</div><div class="ptr">${p}</div></div>`;
   });
+  if(eg.right)h+=edgeCell(eg.right,arr.length+1);
   h+='</div>';
   if(f.aux){
     h+='<div class="aux-lab">B (auxiliary array)</div><div class="cells aux">';
@@ -827,6 +851,139 @@ function buildViz(host,cfg){
   run();
 }
 
+/* ---------- topic sections (complexity, recursion) ---------- */
+function blockHtml(b){
+  if(b.p)return `<p>${esc(b.p)}</p>`;
+  if(b.key)return `<div class="key glass-layer"><p>${esc(b.key)}</p></div>`;
+  if(b.nt)return `<div class="nt"><b>${esc(b.nt)}</b><span>${esc(b.b)}</span></div>`;
+  if(b.sub)return `<h4 style="margin-top:8px">${esc(b.sub)}</h4>`;
+  if(b.table)return `${b.table.title?`<div class="tbl-title">${esc(b.table.title)}</div>`:''}${tableHtml(b.table.head,b.table.rows,b.table.th)}`;
+  if(b.formula)return `<div class="glass-layer" style="padding:16px 20px;border-radius:4px;margin-bottom:16px"><p class="mono" style="margin:0;font-size:.95rem">${esc(b.formula)}</p></div>`;
+  if(b.svg)return SVGS[b.svg]?SVGS[b.svg]():'';
+  return '';
+}
+function cardHtml(c,group){
+  return `<article class="glass-layer-strong algo" id="${c.id}">
+    <div class="card-header"><div><div class="project-type">${esc(group)}</div><h3 class="card-title">${esc(c.title)}</h3>${c.tagline?`<p class="card-subtitle">${esc(c.tagline)}</p>`:''}</div></div>
+    <div class="algo-text" style="border-top:none;padding-top:0">${c.cols.map(col=>`<div>${col.map(blockHtml).join('')}</div>`).join('')}</div>
+  </article>`;
+}
+const SVGS={
+};
+const TOPICS=[
+{group:'Complexity',id:'notation',title:'Asymptotic Notation',tagline:'O, Ω, Θ and o — the four ways to compare growth rates.',cols:[
+ [{p:'Time complexity describes how an algorithm’s running time grows as the input size n grows. We don’t measure exact seconds, since those depend on the machine, language and compiler. Instead we look at the growth rate, ignoring constant factors and lower-order terms: n² log n + 10n² + n is simply of order n² log n, because for large n the other terms stop mattering.'},
+  {sub:'O — upper bound'},{p:'f(n) = O(g(n)) means there exist constants c > 0 and n₀ such that f(n) ≤ c·g(n) for all n ≥ n₀. f grows no faster than g — think of O as "≤". It is only an upper bound: insertion sort is O(n²), but on an already sorted input it runs in O(n).'},
+  {sub:'Ω — lower bound'},{p:'f(n) = Ω(g(n)) means there exist c > 0 and n₀ such that f(n) ≥ c·g(n) for all n ≥ n₀. f grows at least as fast as g — think of Ω as "≥". f is Ω(g) exactly when g is O(f). Ω is used for problems too: "sorting by comparisons is Ω(n log n)" means no comparison-based sort can beat n log n.'},
+  {sub:'Θ — tight bound'},{p:'f(n) = Θ(g(n)) means there exist c₁, c₂ > 0 and n₀ such that c₁·g(n) ≤ f(n) ≤ c₂·g(n) for all n ≥ n₀. f grows at the same rate as g — think of Θ as "=". f = Θ(g) if and only if f is both O(g) and Ω(g).'}],
+ [{key:'Selection sort is Θ(n²) and bottom-up merge sort is Θ(n log n). Insertion sort has no single Θ for its overall running time, since it ranges from n to n².'},
+  {sub:'Limit test shortcut'},{formula:'If lim f(n)/g(n) as n → ∞ exists: not ∞ ⇒ f = O(g).  not 0 ⇒ f = Ω(g).  a constant in (0, ∞) ⇒ f = Θ(g).'},
+  {sub:'o — little-o (strictly slower)'},{p:'f(n) = o(g(n)) if for every constant c > 0 there is an n₀ such that f(n) < c·g(n) for all n ≥ n₀. Informally, f becomes insignificant next to g as n → ∞ — think "<". Big-O only needs some c, little-o needs every c. For the smooth, steadily growing functions in this course, f = o(g) exactly when f = O(g) but g ≠ O(f). (That shortcut can fail for functions that oscillate, so the ∀c definition above is the one to fall back on.) We also write f ≺ g for f = o(g).'},
+  {nt:'Complexity classes',b:'"f is Θ(g)" is reflexive, symmetric and transitive, so it splits functions into classes — all degree-2 polynomials are in the class n². Little-o is how we show two functions are in different classes: n log n = o(n²) means n log n is O(n²) but n² is not O(n log n).'},
+  {table:{title:'Hierarchy of complexity classes (slowest-growing to fastest-growing)',head:['Chain'],rows:[['1 ≺ log log n ≺ log n ≺ √n ≺ n^(3/4) ≺ n ≺ n log n ≺ n² ≺ 2ⁿ ≺ n! ≺ 2^(n²)']]}}]]},
+
+{group:'Complexity',id:'growth',title:'Why Growth Rate Matters',tagline:'The same million elements, radically different running times.',cols:[
+ [{p:'Take 2²⁰ (about a million) elements, with each comparison costing one microsecond. Bottom-up merge sort needs about 20 seconds, while selection sort needs about 6.4 days. For small inputs the difference is invisible, but for large inputs the choice of algorithm decides whether the program is usable at all.'},
+  {p:'An elementary operation is any step whose cost is bounded by a constant — arithmetic, comparisons, and assignments on fixed-size operands. We count these instead of real time.'}],
+ [{table:{title:'Common growth rates, slowest-growing to fastest-growing',head:['Rate','Note'],th:true,rows:[['log n','Halving per step — binary search.'],['n','One pass — linear search.'],['n log n','Optimal comparison-based sorting.'],['n²','Simple sorts — selection, insertion, bubble.'],['n³','Sum of squares; some matrix algorithms.'],['2ⁿ','Explodes even for moderate n — brute-force subsets.']]}}]]},
+
+{group:'Complexity',id:'estimating',title:'How to Estimate Running Time',tagline:'Three standard techniques: count iterations, find the basic operation, or solve a recurrence.',cols:[
+ [{sub:'1. Counting the number of iterations'},{p:'Running time is often proportional to the number of passes through the loops. Find the statement executed the most, assume it costs constant time, and count how many times it runs. A simple loop (iterator increases by one) becomes a summation: the iterator is the index, the starting value the lower limit, the last value the upper limit. Nested loops become nested summations.'},
+  {table:{title:'Summations and geometric progression',head:['Sum','Closed form','Growth'],th:true,rows:[
+    ['1 + 2 + … + n','n(n+1)/2','Θ(n²)'],
+    ['1² + 2² + … + n²','n(n+1)(2n+1)/6','Θ(n³)'],
+    ['1³ + 2³ + … + n³','n²(n+1)²/4','Θ(n⁴)'],
+    ['1 + 2 + … + √n','(√n)(√n+1)/2','Θ(n)'],
+    ['Σ 2ⁱ, i = 0..n (doubling)','2^(n+1) − 1','Θ(last term)'],
+    ['1 + 1/2 + 1/4 + … (halving)','never exceeds 2','Θ(first term)']]}},
+  {key:'A geometric sum is dominated by its largest term when the ratio is above 1 (Θ of the last term), and by its first term when the ratio is below 1 (Θ of the first term). This is also why the Master Theorem has three cases: the cost per level is a geometric series dominated by the first level, the last level, or neither.'}],
+ [{table:{title:'Loop-counting examples from the notes',head:['Example','Loop shape','Running time'],th:true,rows:[
+    ['count1','j: 1..√n, i: 1..j²','Σ j² = Θ(n^1.5)'],
+    ['count2','i: 1..n, j: 1..⌊n/i⌋','Σ ⌊n/i⌋ ≈ n ln n = Θ(n log n)'],
+    ['count3','i = 1,2,4,…,n (r = log₂ i)','Σ 2ʳ = 2n − 1 = Θ(n)'],
+    ['count4','i = n, n/2, n/4, …, 1','Same substitution as count3 = Θ(n)'],
+    ['count5','i: 1..n, inner j = 2,4,16,… (j²  each time)','n(log log n + 1) = Θ(n log log n)']]}},
+  {sub:'2. Counting the frequency of basic operations'},{p:'Sometimes counting iterations is awkward, as with merge. Instead find a basic operation — the elementary operation whose frequency is highest, to within a constant factor, among all elementary operations. In merge, each element moves from A to B once and all n are copied back: exactly 2n assignments, more than any other operation, so assignment is basic and merge is Θ(n). Comparison is not basic in general for merge (there may be only one), but it is basic when the two halves are about equal, as inside bottom-up merge sort.'},
+  {nt:'A warning: modified insertion sort',b:'If we use binary search to find the insertion position, comparisons total only O(n log n). But comparison is not the basic operation here, because the shifting assignments are still the same as plain insertion sort, O(n²). So the running time stays O(n²), not O(n log n). Always check that your chosen operation really has the highest frequency.'},
+  {sub:'3. Using recurrence relations'},{p:'For recursive algorithms the running time is usually a recurrence, a function defined in terms of itself, such as T(n) = 2T(n/2) + n. For binary search, C(n) ≤ 1 if n = 1 and C(n) ≤ C(⌊n/2⌋) + 1 if n ≥ 2. Unrolling gives C(n) ≤ C(1) + ⌊log n⌋ = ⌊log n⌋ + 1, so binary search runs in O(log n). The Recursion section below covers this technique in full.'}]]},
+
+{group:'Complexity',id:'space',title:'Space Complexity',tagline:'Extra memory beyond the input — and why it can never exceed time.',cols:[
+ [{p:'Space is the number of memory cells (words) an algorithm needs, excluding the space that holds the input. It measures only the extra work space, so we can tell apart algorithms that use "less than" linear work space. All the asymptotic definitions (O, Ω, Θ, o) carry over from time complexity.'}],
+ [{formula:'Work space can never exceed running time: writing into each memory cell costs at least constant time. If T(n) is the time and S(n) the space, then S(n) = O(T(n)).'},
+  {key:'To sort n = 2²⁰ = 1,048,576 elements, selection sort needs no extra storage, while bottom-up merge sort needs n extra cells as temporary storage.'}]]},
+
+{group:'Complexity',id:'optimal',title:'Optimal Algorithms',tagline:'Ω(n log n) is the floor for any comparison-based sort.',cols:[
+ [{p:'Any algorithm that sorts n elements using element comparisons must take Ω(n log n) time in the worst case, so no comparison-based sorting algorithm can be asymptotically faster. Any comparison-based sort whose worst case runs in O(n log n) is therefore called optimal — bottom-up merge sort is optimal. We say it is optimal within a multiplicative constant, since another algorithm might still run in a constant fraction of its time.'},
+  {p:'In general, if any algorithm solving problem Π must be Ω(f(n)), then any algorithm that solves Π in O(f(n)) time is an optimal algorithm for Π.'}],
+ [{key:'This definition ignores space. Time is considered more precious than space as long as space stays reasonable, and most optimal algorithms use about O(n) space anyway. Bottom-up merge sort needs Θ(n) auxiliary space and is still called optimal, even though heap sort reaches O(n log n) time using only O(1) space — heap sort has not been covered in class yet, so its card is still empty.'}]]},
+
+{group:'Complexity',id:'wc-ac',title:'Worst-Case & Average-Case Analysis',tagline:'Same algorithm, different cost depending on which inputs we average over.',cols:[
+ [{p:'Some algorithms depend only on input size — matrix addition and selection sort always do the same number of operations. Others, like insertion sort, also depend on the input’s order: its comparisons range from n − 1 to n(n − 1)/2. Since we can’t write a time function of both size and form, we analyze specific cases. Best-case analysis is rarely used, since it says little about real behavior.'},
+  {sub:'Worst-case analysis'},{p:'We take the maximum cost over all inputs of size n. Insertion sort is Ω(n²) on some input of every size (the decreasing one) and O(n²) overall, so it is Θ(n²) in the worst case. Θ is preferred over O here since it also guarantees the Ω(n²) part.'}],
+ [{nt:'Worst-case bounds don’t always match',b:'To claim Θ(f(n)) in the worst case you must show that for every n above some n₀ there is an input of size n taking Ω(f(n)) time — being slow for only infinitely many n is not enough. Example: a procedure running binary search when n is odd and linear search when n is even is O(n), but not Ω(n) in the worst case, since odd n never gives a slow input. We can only say it is Ω(log n), so it is not Θ(f(n)) for any of the standard growth functions. (A contrived piecewise f would fit, which is exactly why worst-case Θ claims need the "for every n" condition.)'},
+  {sub:'Average-case analysis'},{p:'Here we take the average time over all inputs of size n, which needs an input distribution (usually assumed uniform) and is often long and complex.'},
+  {table:{title:'Average-case results',head:['Algorithm','Average comparisons'],th:true,rows:[['Linear search','(1/n)·Σ j = (n+1)/2, so Θ(n)'],['Insertion sort','i/2 + 1/2 − 1/i per element, summing to ≈ n²/4 + 3n/4 − ln n, so Θ(n²) — roughly half the worst case, but still quadratic']]}}]]},
+
+{group:'Complexity',id:'amortized',title:'Amortized Analysis',tagline:'Average the cost over a whole run, not over all inputs.',cols:[
+ [{p:'Sometimes we can’t get an exact Θ and have to settle for O, which can be pessimistic. If an operation repeats many times, usually fast but occasionally very slow, amortized analysis is the right tool: average the operation’s cost over the whole execution. This differs from average-case analysis in two ways — it averages over operations within one execution, not over all inputs of the same size, and it needs no assumption about input distribution.'},
+  {nt:'List with deletions',b:'Append each integer x to a list; if x is even, delete all odd elements right before it. A single while loop can delete up to n − 1 elements, so each iteration costs O(n) and the naive bound is O(n²). But there are exactly n insertions and each element is deleted at most once, so the total is between n and 2n − 1 operations: Θ(n). The while loop takes O(1) amortized time regardless of input.'}],
+ [{nt:'Doubling array',b:'Elements arrive in a stream; start with array size 1 and double whenever it fills up, copying everything over. For n = 2ᵏ elements, each element is moved O(log n) times — a loose bound of O(n log n). But every entry of every newly allocated array is assigned exactly once, so total assignments equal Σ 2ʲ = 2^(k+1) − 1 = 2n − 1 = Θ(n). Each element costs Θ(1) amortized.'},
+  {key:'Amortized analysis is harder than worst-case analysis, but it pays off with a lower, tighter complexity.'}]]},
+
+{group:'Complexity',id:'input-size',title:'Input Size & Problem Instance',tagline:'What "n" means changes with the problem — and that changes the complexity class.',cols:[
+ [{p:'An instance of a problem is the input to an algorithm solving it. Input size follows convention and depends on the problem.'},
+  {table:{title:'How input size is measured',head:['Problem domain','Size n is …'],th:true,rows:[['Sorting and searching','the number of entries'],['Graphs','the number of vertices and/or edges'],['Computational geometry','the number of points, vertices, edges, segments or polygons'],['Matrices','the dimensions of the matrices'],['Number theory and cryptography','the number of bits of the input']]}}],
+ [{key:'Adding two n × n matrices takes n² additions, which sounds quadratic, but it is actually linear in the input size, since the input itself has n² entries.'},
+  {p:'The most important consequence is for number problems: size is the number of bits k = ⌈log(n+1)⌉. Brute-force primality testing takes O(√n), but since n ≈ 2ᵏ, this is O(2^(k/2)) — exponential.'},
+  {nt:'Same operations, different size',b:'Algorithm first takes an array A[1..n] with A[j] = j, so its size is n and it is Θ(n). Algorithm second takes only the number n, so its size is k bits and its time is Θ(n) = Θ(2ᵏ), exponential. Both perform the exact same number of elementary operations — the difference comes purely from how we measure input size.'}]]},
+
+{group:'Recursion',id:'recurrences',title:'Writing Recurrences',tagline:'Divide, conquer, combine — and the cost is the recursive calls plus everything outside them.',cols:[
+ [{p:'A recursive algorithm calls itself on a smaller input, so its running time is a recurrence relation: a formula for T(n) in terms of T on smaller inputs. Divide-and-conquer has three steps: divide the input into p smaller parts, conquer with p recursive calls (stopping at a small base size, usually 1), and combine the results.'}],
+ [{table:{title:'Recurrence = recursive cost + outside cost',head:['Algorithm','Recurrence','Why'],th:true,rows:[
+   ['Factorial','T(n) = T(n−1) + c','One call plus a multiplication'],
+   ['Merge Sort','T(n) = 2T(n/2) + n','Two half-size calls plus a Θ(n) merge'],
+   ['Binary Search (recursive)','T(n) = T(n/2) + 1','Searches only one half']]}}]]},
+
+{group:'Recursion',id:'expansion',title:'Solving by Expansion',tagline:'Substitute the recurrence into itself until the pattern is clear.',cols:[
+ [{p:'Keep substituting the recurrence into itself until the pattern is clear, then stop at T(1).'},
+  {formula:'Binary search, n = 2ᵏ: T(n) = T(n/2) + 1 = T(n/4) + 2 = … = T(1) + k, so Θ(log n).'},
+  {formula:'Merge sort: T(n) = 2T(n/2) + n = 4T(n/4) + 2n = … = n·T(1) + n·log n, so Θ(n log n). Each level costs n in total, and there are log n levels.'}],
+ [{formula:'Factorial: T(n) = c·n, so Θ(n).'},
+  {key:'Expansion is the fallback whenever the recurrence doesn’t fit the Master Theorem’s form a·T(n/b) + f(n) — for example T(n) = T(n−1) + n.'}]]},
+
+{group:'Recursion',id:'master',title:'The Master Theorem',tagline:'Solve T(n) = a·T(n/b) + f(n) by comparing f(n) to n^(log_b a).',cols:[
+ [{sub:'Simple version'},{p:'For T(n) = a·T(n/b) + f(n) with a ≥ 1, b > 1: compute n^(log_b a) and compare it to f(n).'},
+  {table:{head:['Case','Condition','Result'],th:true,rows:[
+    ['1','f(n) is polynomially smaller','T(n) = Θ(n^(log_b a))'],
+    ['2','f(n) is the same order','T(n) = Θ(n^(log_b a) · log n)'],
+    ['3','f(n) is polynomially larger (needs a·f(n/b) ≤ c·f(n), c < 1)','T(n) = Θ(f(n))']]}},
+  {table:{title:'Worked examples',head:['Recurrence','a, b, f','n^(log_b a)','Result'],th:true,rows:[
+    ['Merge sort: 2T(n/2) + n','a=2, b=2, f=n','n','matches f ⇒ Θ(n log n)'],
+    ['Binary search: T(n/2) + 1','a=1, b=2, f=1','1','matches f ⇒ Θ(log n)']]}}],
+ [{sub:'Version with log factors'},{p:'Solves T(n) = a·T(n/b) + f(n) where f(n) = Θ(nᵏ · logᵖ n). Compute log_b a and compare it with k.'},
+  {table:{head:['Case','Condition','Result'],th:true,rows:[
+    ['1','log_b a > k','T(n) = Θ(n^(log_b a))'],
+    ['2','log_b a = k, p > −1','T(n) = Θ(nᵏ · log^(p+1) n)'],
+    ['2','log_b a = k, p = −1','T(n) = Θ(nᵏ · log log n)'],
+    ['2','log_b a = k, p < −1','T(n) = Θ(nᵏ)'],
+    ['3','log_b a < k, p ≥ 0','T(n) = Θ(f(n)) = Θ(nᵏ · logᵖ n)'],
+    ['3','log_b a < k, p < 0','T(n) = Θ(nᵏ)']]}},
+  {nt:'The simple version is the special case p = 0',b:'In Case 2 with p = 0 the answer is nᵏ · log n. The theorem only works for the form a·T(n/b) + f(n) — for T(n) = T(n−1) + n, use expansion instead.'},
+  {table:{title:'More worked examples',head:['Recurrence','log_b a vs k, p','Result'],th:true,rows:[
+    ['4T(n/2) + n','log₂4=2 > k=1','Case 1 ⇒ Θ(n²)'],
+    ['2T(n/2) + n²','log₂2=1 < k=2','Case 3 ⇒ Θ(n²)'],
+    ['2T(n/2) + n/log n','log₂2=1=k, p=−1','Case 2 ⇒ Θ(n log log n)']]}}]]},
+
+{group:'Recursion',id:'quicksort-recurrence',title:'Quick Sort’s Running Time',tagline:'One recurrence, three very different answers depending on where the pivot lands.',cols:[
+ [{p:'Split uses A[low] as the pivot, moves elements ≤ pivot to the left, and places the pivot in its final position — exactly n − 1 comparisons, so Θ(n). Quicksort then recurses on the parts left and right of the pivot.'},
+  {table:{head:['Case','Recurrence','Result'],th:true,rows:[
+    ['Worst (pivot lands at one end, e.g. sorted input)','T(n) = T(n−1) + (n−1)','n(n−1)/2 = Θ(n²)'],
+    ['Best (pivot lands in the middle)','T(n) = 2T(n/2) + n−1','Θ(n log n)']]}}],
+ [{p:'Average case: distinct elements, all permutations equally likely — the pivot is equally likely to land at any position, each with probability 1/n.'},
+  {formula:'C(n) = (n−1) + (2/n)·Σ C(i) for i = 0 to n−1, which solves to about 2n ln n, so Θ(n log n).'},
+  {key:'Comparison of sorting algorithms: selection sort is Θ(n²) in every case with constant space. Insertion and bubble sort are Θ(n) best and Θ(n²) average/worst, also constant space. Merge sort is Θ(n log n) in every case but needs Θ(n) extra space. Quick sort is Θ(n log n) best/average and Θ(n²) worst, sorting in place and usually fastest in practice, though the recursion stack costs O(n) space in the worst case. Heap sort is Θ(n log n) in every case with constant space (its own card is still a stub, since it has not been covered in class yet). Radix sort is Θ(kn) for k-digit numbers with Θ(n) space, and isn’t comparison-based, so the n log n lower bound doesn’t apply to it.'}]]},
+];
+
 /* ---------- page ---------- */
 function pseudoHtml(lines){
   return lines.map(([ind,t],i)=>`<div class="ln${/^procedure/.test(t)?' proc':''}" data-n="${i+1}"><span class="no">${i+1}</span><span class="tx" style="padding-left:${ind*16}px">${esc(t)}</span></div>`).join('');
@@ -872,6 +1029,11 @@ function renderPage(){
       <input type="range" id="gn" min="2" max="1000" value="100" aria-label="Input size n">
       <div id="grows"></div><p class="g-cap">n = <span id="gnv">100</span>. Bars use a log scale so all four fit on screen.</p></div>
   </section>`;
+  const TOPIC_GROUPS=[['Complexity','complexity','Growth rates, Big-O/Ω/Θ/o, and the three techniques for estimating running time.'],
+    ['Recursion','recursion','Writing recurrences, solving by expansion, and the Master Theorem.']];
+  TOPIC_GROUPS.forEach(([g,id,sub])=>{
+    h+=`<section class="section" id="${id}">${secHead(id+'-h',g,sub)}${TOPICS.filter(t=>t.group===g).map(t=>cardHtml(t,g)).join('')}</section>`;
+  });
   document.getElementById('app').innerHTML=h;
 
   ALGOS.forEach(a=>{
@@ -881,7 +1043,7 @@ function renderPage(){
   });
 
   const nav=document.getElementById('index');
-  nav.innerHTML=`<a href="#foundations-h" data-t="foundations">Basics</a><span class="sep"></span>`+ALGOS.map(a=>`<a href="#${a.id}" data-t="${a.id}">${a.short}</a>`).join('')+`<span class="sep"></span><a href="#cheat-h" data-t="cheat">Cheat sheet</a><button type="button" id="theme"></button>`;
+  nav.innerHTML=`<a href="#foundations-h" data-t="foundations">Basics</a><span class="sep"></span>`+ALGOS.map(a=>`<a href="#${a.id}" data-t="${a.id}">${a.short}</a>`).join('')+`<span class="sep"></span><a href="#cheat-h" data-t="cheat">Cheat sheet</a><span class="sep"></span><a href="#complexity-h" data-t="complexity">Complexity</a><a href="#recursion-h" data-t="recursion">Recursion</a><span class="sep"></span><a href="Reductions.html#graph-review-h">Graphs</a><a href="Reductions.html#np-basics-h">P &amp; NP</a><a href="Reductions.html#np-complete-h">NP-complete</a><a href="Reductions.html#co-np-h">Co-NP</a><a href="Reductions.html#reductions-h">Reductions</a><button type="button" id="theme"></button>`;
   const root=document.documentElement;
   const isDark=()=>root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
   const SUN='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -893,7 +1055,7 @@ function renderPage(){
   setIcon();
 
   const links=[...nav.querySelectorAll('a')];
-  const targets=[document.getElementById('foundations'),...ALGOS.map(a=>document.getElementById(a.id)),document.getElementById('cheat')];
+  const targets=[document.getElementById('foundations'),...ALGOS.map(a=>document.getElementById(a.id)),document.getElementById('cheat'),document.getElementById('complexity'),document.getElementById('recursion')];
   if('IntersectionObserver' in window){
     const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const id=e.target.id;links.forEach(l=>l.classList.toggle('on',l.dataset.t===id));const on=links.find(l=>l.dataset.t===id);if(on)nav.scrollLeft=on.offsetLeft-nav.clientWidth/2+on.offsetWidth/2;}});},{rootMargin:'-35% 0px -60% 0px'});
     targets.forEach(t=>t&&io.observe(t));
