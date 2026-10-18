@@ -414,6 +414,190 @@ tbody tr:hover{background:var(--tint)}
   .algo-text{gap:24px}
   .def p{font-size:1.1rem}
 }
+
+/* ---------- mobile alignment fixes (both pages) ---------- */
+main ol,main ul{padding-left:1.5em}
+main li{padding-left:.15em}
+main li::marker{color:var(--muted);font-variant-numeric:tabular-nums}
+main p,main li,main td,.nt span,.note,.cap,.card-subtitle,.io div,.key p{overflow-wrap:break-word}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.tree-wrap svg{display:block;margin:0 auto}
+
+@media (max-width:640px){
+  /* tables become one small card per row, labelled by column */
+  .tbl-wrap{border:0;border-radius:0;overflow:visible}
+  .tbl-wrap table,.tbl-wrap tbody,.tbl-wrap tr,.tbl-wrap td{display:block;width:100%}
+  .tbl-wrap thead{display:none}
+  .tbl-wrap tr{border:1px solid var(--gb-strong);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:10px;background:var(--tint)}
+  .tbl-wrap tbody tr:hover{background:var(--tint)}
+  .tbl-wrap td{border:0;padding:4px 0;display:grid;grid-template-columns:minmax(78px,32%) minmax(0,1fr);gap:10px;align-items:baseline}
+  .tbl-wrap td::before{content:attr(data-label);font:500 .64rem 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .tbl-wrap td:first-child{display:block;font-weight:700;padding-bottom:6px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+  .tbl-wrap td:first-child::before{display:none}
+  .tbl-wrap td.th{min-width:0}
+  /* bars: fit a 10-element array across a phone */
+  .cells{gap:4px}
+  .cell .val{font-size:11px}
+  .cell .ptr{font-size:9px}
+  .stage{padding:14px 10px}
+  .inputs{width:100%}
+  .inputs .in.arr{flex:1 1 160px;width:auto}
+  .legend{gap:6px 14px}
+}
+
+/* bars shrink to fit the panel instead of scrolling */
+.cells{width:100%;justify-content:center}
+.cell{flex:1 1 0;min-width:20px;max-width:42px}
+
+/* ---------- diagrams: shared palette + node/edge styles ---------- */
+:root{
+  --d-blue:#2563EB;--d-green:#059669;--d-amber:#D97706;--d-rose:#E11D48;--d-violet:#7C3AED;--d-teal:#0891B2;
+  --d-edge:#A8B1BE;--d-edge-strong:#475569;--d-node:#FFFFFF;--d-node-stroke:#334155;--d-text:#0F172A;--d-on:#FFFFFF;--d-muted:#64748B;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --d-blue:#60A5FA;--d-green:#34D399;--d-amber:#FBBF24;--d-rose:#FB7185;--d-violet:#A78BFA;--d-teal:#22D3EE;
+    --d-edge:#3F4A5A;--d-edge-strong:#94A3B8;--d-node:#12161D;--d-node-stroke:#CBD5E1;--d-text:#F1F5F9;--d-on:#0A0A0A;--d-muted:#94A3B8;
+  }
+}
+:root[data-theme="dark"]{
+  --d-blue:#60A5FA;--d-green:#34D399;--d-amber:#FBBF24;--d-rose:#FB7185;--d-violet:#A78BFA;--d-teal:#22D3EE;
+  --d-edge:#3F4A5A;--d-edge-strong:#94A3B8;--d-node:#12161D;--d-node-stroke:#CBD5E1;--d-text:#F1F5F9;--d-on:#0A0A0A;--d-muted:#94A3B8;
+}
+
+/* hue helpers: set --h on a node, edge or swatch */
+.h-blue{--h:var(--d-blue)}.h-green{--h:var(--d-green)}.h-amber{--h:var(--d-amber)}
+.h-rose{--h:var(--d-rose)}.h-violet{--h:var(--d-violet)}.h-teal{--h:var(--d-teal)}
+
+svg.dg{overflow:visible}
+.dg text{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+/* nodes */
+.dg .tn circle,.dg .tn rect{fill:var(--d-node);stroke:var(--d-node-stroke);stroke-width:1.8;transition:fill .25s,stroke .25s,opacity .25s}
+.dg .tn text{fill:var(--d-text);font-size:12px;font-weight:600;transition:fill .25s}
+.dg .tn[class*="h-"] circle,.dg .tn[class*="h-"] rect{fill:color-mix(in srgb,var(--h) 16%,var(--d-node));stroke:var(--h);stroke-width:2.2}
+.dg .tn.solid circle,.dg .tn.solid rect,
+.dg .tn.vis circle,.dg .tn.vis rect{fill:var(--h,var(--vis-h,var(--d-blue)));stroke:var(--h,var(--vis-h,var(--d-blue)))}
+.dg .tn.solid text,.dg .tn.vis text{fill:var(--d-on)}
+.dg .tn.cur circle,.dg .tn.cur rect{fill:color-mix(in srgb,var(--cur-h,var(--d-blue)) 18%,var(--d-node));stroke:var(--cur-h,var(--d-blue));stroke-width:3.4}
+.dg .tn.dim{opacity:.38}
+
+/* edges */
+.dg .te{stroke:var(--d-edge);stroke-width:2.2;stroke-linecap:round;fill:none;transition:stroke .25s,opacity .25s,stroke-width .25s}
+.dg .te.on{stroke:var(--d-edge-strong)}
+.dg .te[class*="h-"]{stroke:var(--h)}
+.dg .te.thick{stroke-width:4}
+.dg .te.hot{stroke:var(--hot-h,var(--d-blue));stroke-width:4.5}
+.dg .te.dash{stroke-dasharray:6 5}
+.dg .te.dim{opacity:.16}
+.dg .area{stroke-width:2;fill-opacity:.10}
+.dg .area[class*="h-"]{stroke:var(--h);fill:var(--h)}
+
+/* labels */
+.dg .lab-cap{fill:var(--d-muted);font-size:11px;font-weight:600;letter-spacing:.06em}
+.dg .lab-h{fill:var(--h);font-size:12px;font-weight:700}
+.dg .lab-big{fill:var(--d-text);font-size:14px;font-weight:700}
+.dg .ew{fill:var(--d-muted);font-size:11px;font-weight:700;paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+.dg .ew.w1{fill:var(--d-edge-strong)}
+.dg .ew.w2{fill:var(--d-amber)}
+.dg .ew.hot{fill:var(--d-green)}
+.dg .arrow-fill{fill:var(--d-edge-strong)}
+
+/* per-visualizer meaning */
+[data-viz="circuit"]{--vis-h:var(--d-green);--cur-h:var(--d-blue)}
+[data-viz="circuit"] .dg .te.one{stroke:var(--d-green);stroke-width:3.4}
+[data-viz="hc"]{--vis-h:var(--d-blue);--hot-h:var(--d-green)}
+[data-viz="hc"] .dg .te.dash{stroke:var(--d-amber)}
+[data-viz="clique"],.fig-clique{--hot-h:var(--d-violet);--cur-h:var(--d-blue)}
+[data-viz="clique"] .dg .tn.vis circle,.fig-clique .dg .tn.vis circle{fill:var(--d-violet);stroke:var(--d-violet)}
+[data-viz="vcis"]{--vis-h:var(--d-amber)}
+[data-viz="vcis"] .dg .tn.cur circle{fill:var(--d-teal);stroke:var(--d-teal);stroke-width:1.8}
+[data-viz="vcis"] .dg .tn.cur text{fill:var(--d-on)}
+[data-viz="vcis"] .dg .tn.clq circle{fill:var(--d-violet);stroke:var(--d-violet)}
+[data-viz="vc"],[data-viz="vc3"],.fig-vc{--vis-h:var(--d-amber);--cur-h:var(--d-green)}
+.dg .te.e-var{stroke:var(--d-blue);stroke-width:3}
+.dg .te.e-cl{stroke:var(--d-violet);stroke-width:3}
+.dg .te.e-con{stroke:var(--d-edge-strong);stroke-dasharray:5 5}
+
+/* legend swatches */
+.sw.k-green{background:var(--d-green);border-color:var(--d-green)}
+.sw.k-blue{background:var(--d-blue);border-color:var(--d-blue)}
+.sw.k-amber{background:var(--d-amber);border-color:var(--d-amber)}
+.sw.k-violet{background:var(--d-violet);border-color:var(--d-violet)}
+.sw.k-teal{background:var(--d-teal);border-color:var(--d-teal)}
+.sw.k-rose{background:var(--d-rose);border-color:var(--d-rose)}
+.sw.k-ring-blue{background:color-mix(in srgb,var(--d-blue) 18%,transparent);border:2.5px solid var(--d-blue)}
+.sw.k-ring-green{background:color-mix(in srgb,var(--d-green) 18%,transparent);border:2.5px solid var(--d-green)}
+.sw.k-line{background:var(--d-edge-strong);border-color:var(--d-edge-strong);height:4px;border-radius:2px}
+.sw.k-dash-amber{background:transparent;border:0;border-top:3px dashed var(--d-amber);height:0;border-radius:0}
+.sw.k-line-green{background:var(--d-green);border-color:var(--d-green);height:5px;border-radius:3px}
+.sw.k-line-blue{background:var(--d-blue);border-color:var(--d-blue);height:4px;border-radius:2px}
+.sw.k-line-violet{background:var(--d-violet);border-color:var(--d-violet);height:4px;border-radius:2px}
+.sw.k-dash{background:transparent;border:0;border-top:3px dashed var(--d-edge-strong);height:0;border-radius:0}
+
+/* yes / no result chips */
+.chip.stat.yes{background:var(--d-green);border-color:var(--d-green);color:var(--d-on)}
+.chip.stat.no{background:var(--d-rose);border-color:var(--d-rose);color:var(--d-on)}
+.chip.stat.yes i,.chip.stat.no i{color:inherit;opacity:.75}
+
+/* 3SAT clause chips */
+.chip .lit-new{color:var(--d-amber);font-weight:700}
+.fm .chip.on{background:color-mix(in srgb,var(--d-blue) 14%,transparent);border-color:var(--d-blue);color:var(--d-text)}
+.fm .chip.on .lit-new{color:var(--d-amber)}
+
+/* reduction map */
+.mapn rect{fill:color-mix(in srgb,var(--h,var(--d-edge)) 14%,var(--d-node));stroke:var(--h,var(--d-node-stroke));stroke-width:1.8}
+.mapn text{fill:var(--d-text);font-size:12px;font-weight:600}
+.mapn:hover rect{fill:color-mix(in srgb,var(--h) 26%,var(--d-node))}
+.mapn.sel rect{fill:var(--h);stroke:var(--h)}
+.mapn.sel text{fill:var(--d-on)}
+.mapn.to rect{stroke:var(--d-blue);stroke-width:3.2;fill:color-mix(in srgb,var(--d-blue) 14%,var(--d-node))}
+.mapn.from rect{stroke:var(--d-amber);stroke-width:3.2;fill:color-mix(in srgb,var(--d-amber) 14%,var(--d-node))}
+.mapn.dim{opacity:.28}
+.map-legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;font:400 12px 'JetBrains Mono',monospace;color:var(--muted)}
+
+/* figure captions inside cards */
+.fig{margin:4px 0 20px}
+.fig .cap{text-align:center;max-width:none}
+.algo-text .fig svg{max-width:100%}
+.dg .tn.cur.fresh circle{stroke:var(--d-blue);fill:color-mix(in srgb,var(--d-blue) 18%,var(--d-node))}
+.sw.k-ring-rose{background:color-mix(in srgb,var(--d-rose) 18%,transparent);border:2.5px solid var(--d-rose)}
+@media (max-width:767px){
+  [data-w="redmap"] .widget > svg{min-width:640px}
+  [data-w="redmap"] .widget{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  [data-w="redmap"] .cap::before{content:"Swipe the map sideways. ";font-weight:600}
+}
+
+/* homework visualizers */
+.dg .te.arc{stroke:var(--d-blue);stroke-width:2;opacity:.85}
+.dg .te.arc.dim{opacity:.18}
+.dg .te.arc-hot{stroke:var(--d-green);stroke-width:3.6}
+.dg .arrow-blue{fill:var(--d-blue)}
+.dg .arrow-hot{fill:var(--d-green)}
+.dg .tn.ghost text{font-size:10px}
+.sw.k-ring-violet{background:color-mix(in srgb,var(--d-violet) 18%,transparent);border:2.5px solid var(--d-violet)}
+.dg .tn.vis.cur text,.dg .tn.cur text{fill:var(--d-text)}
+[data-viz="vcis"] .dg .tn.cur text{fill:var(--d-on)}
+
+/* ---------- algorithm visualizers: same palette as the reduction diagrams ---------- */
+.cell.cmp .bar,.sw.cmp{background:var(--d-blue);border-color:var(--d-blue)}
+.cell.swap .bar,.sw.swap{background:repeating-linear-gradient(135deg,var(--d-amber) 0 3px,transparent 3px 6px);border-color:var(--d-amber)}
+.cell.found .bar,.sw.found{background:var(--d-green);border-color:var(--d-green);box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--d-green)}
+.cell.min .bar,.sw.min,.cell.pivot .bar,.sw.pivot,.cell.key .bar,.sw.key{background:color-mix(in srgb,var(--d-violet) 30%,transparent);border:2px solid var(--d-violet)}
+.cell.sorted .bar,.sw.sorted{background:color-mix(in srgb,var(--d-green) 16%,transparent);border:2px solid var(--d-green)}
+.cell.le .bar,.sw.le,.cell.runL .bar,.sw.runL{background:color-mix(in srgb,var(--d-blue) 22%,transparent);border-color:color-mix(in srgb,var(--d-blue) 60%,transparent)}
+.cell.runR .bar,.sw.runR{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--d-teal) 50%,transparent) 0 3px,transparent 3px 6px);border-color:color-mix(in srgb,var(--d-teal) 65%,transparent)}
+.abox.swap .box{background:repeating-linear-gradient(135deg,var(--d-amber) 0 3px,transparent 3px 6px);border-color:var(--d-amber);background-color:var(--bg)}
+.abox.sorted .box{border-color:var(--d-green)}
+.nchip.on{background:var(--d-blue);border-color:var(--d-blue);color:var(--d-on)}
+.nchip .dg.hi{color:var(--d-amber);text-decoration-color:var(--d-amber)}
+.nchip.on .dg.hi{color:var(--d-on)}
+.rx-b.on{border-color:var(--d-blue)}
+.tree-wrap .dg .te.on{stroke:var(--d-blue);stroke-width:3}
+.grow .g-row:nth-of-type(1) .g-bar i{background:var(--d-green)}
+.grow .g-row:nth-of-type(2) .g-bar i{background:var(--d-blue)}
+.grow .g-row:nth-of-type(3) .g-bar i{background:var(--d-violet)}
+.grow .g-row:nth-of-type(4) .g-bar i{background:var(--d-rose)}
 </style>
 </head>
 <body>
@@ -570,7 +754,7 @@ function genBottomUp({arr}){
     const s=t;t=2*s;let i=0;const done=[];
     const dm=()=>{const m={};done.forEach(([p,r])=>{for(let x=p;x<=r;x++)m[x]='sorted';});return m;};
     const shade={};for(let x=0;x<n;x++)shade[x]=Math.floor(x/s)%2===0?'runL':'runR';
-    push({line:[2,3],vars:{s,t,n},marks:shade,note:`New pass: s = ${s}, t = ${t}. Merge neighbouring runs of size ${s} into runs of size ${t}.`});
+    push({line:[2,3],vars:{s,t,n},marks:shade,note:`New pass: s = ${s}, t = ${t}. Merge neighboring runs of size ${s} into runs of size ${t}.`});
     const doMerge=(p,q,r,ln)=>{
       const m1=dm();for(let x=p-1;x<=q-1;x++)m1[x]='runL';for(let x=q;x<=r-1;x++)m1[x]='runR';
       push({line:ln,vars:{s,t,p,q,r},marks:m1,note:`merge(A, ${p}, ${q}, ${r}): merge A[${p}..${q}] with A[${q+1}..${r}].`});
@@ -743,9 +927,9 @@ function binTree(el,f,st){
   const nodes=el._nodes,H=el._h,W=n*34+24,Ht=H*46+52;
   const X=i=>18+i*34,Y=d=>22+d*46;
   const vis=new Set(f.visited||[]);
-  let s=`<svg viewBox="0 0 ${W} ${Ht}" width="${W}" height="${Ht}" role="img" aria-label="Binary search decision tree">`;
+  let s=`<svg class="dg" viewBox="0 0 ${W} ${Ht}" width="100%" style="max-width:${Math.round(W*1.25)}px" role="img" aria-label="Binary search decision tree">`;
   nodes.forEach(nd=>{if(nd.p>=0){const p=nodes.find(z=>z.m===nd.p);s+=`<line class="te ${vis.has(nd.m)&&vis.has(nd.p)?'on':''}" x1="${X(nd.p)}" y1="${Y(p.d)}" x2="${X(nd.m)}" y2="${Y(nd.d)}"/>`;}});
-  nodes.forEach(nd=>{s+=`<g class="tn ${vis.has(nd.m)?'vis':''} ${f.cur===nd.m?'cur':''}"><circle cx="${X(nd.m)}" cy="${Y(nd.d)}" r="13"/><text x="${X(nd.m)}" y="${Y(nd.d)+4}" text-anchor="middle">${nd.m+1}</text></g>`;});
+  nodes.forEach(nd=>{s+=`<g class="tn ${vis.has(nd.m)?'vis':''} ${f.cur===nd.m?'cur':''}"><circle cx="${X(nd.m)}" cy="${Y(nd.d)}" r="14"/><text x="${X(nd.m)}" y="${Y(nd.d)}" dominant-baseline="central" text-anchor="middle">${nd.m+1}</text></g>`;});
   s+='</svg>';
   const maxc=Math.floor(Math.log2(n))+1;
   el.innerHTML=`<div class="tree-cap mono">Decision tree for n = ${n}. Each node is a mid position. Height = ⌊log₂ ${n}⌋ = ${maxc-1}, so at most ⌊log₂ ${n}⌋ + 1 = ${maxc} comparisons.</div><div class="tree-wrap">${s}</div>`;
@@ -795,7 +979,7 @@ const ALGOS=[
 
 {id:'bottomup',short:'Bottom-up',group:'Sorting',tag:'Algorithm 1.6',name:'Bottom-Up Merge Sort',tagline:'Merge runs of size 1, then 2, then 4, doubling until one run remains.',
  io:['An array A[1..n] of n elements','A[1..n] sorted in nondecreasing order'],
- what:`Treat each element as a sorted run of size 1, then merge neighbouring runs, doubling their size each round (1 → 2 → 4 → 8 …) until one run remains. It is iterative, unlike recursive Merge Sort, and Merge above does the work at every level.`,
+ what:`Treat each element as a sorted run of size 1, then merge neighboring runs, doubling their size each round (1 → 2 → 4 → 8 …) until one run remains. It is iterative, unlike recursive Merge Sort, and Merge above does the work at every level.`,
  key:`Merge Sort repeatedly merges sorted pieces. Bottom-up starts from pieces of size 1 and doubles them.`,
  pseudo:[[0,'t ← 1'],[0,'while t < n'],[1,'s ← t; t ← 2s; i ← 0'],[1,'while i + t ≤ n'],[2,'merge(A, i + 1, i + s, i + t)'],[2,'i ← i + t'],[1,'end while'],[1,'if i + s < n then merge(A, i + 1, i + s, n)'],[0,'end while']],
  cx:[['Time','Θ(n log n)','For n a power of 2: log₂ n levels, each Θ(n).'],['Comparisons','(n log n)/2 to n log n − n + 1','Textbook bound, n a power of 2.'],['Assignments','2n log n','Exact for n a power of 2; other n cost slightly more, still Θ(n log n).'],['Space','Θ(n)','Merge needs a temporary array.']],
@@ -858,7 +1042,7 @@ const ALGOS=[
 
 {id:'quick',short:'Quick',group:'Sorting',tag:'Algorithms 5.5 and 5.6',name:'Quick Sort',tagline:'Split around a pivot, then sort each side recursively.',
  io:['An array A[1..n] of n elements','A sorted in nondecreasing order'],
- what:`Split uses x = A[low] as the pivot. j scans the rest; i marks the end of the zone ≤ x. When A[j] ≤ x, increment i and interchange A[i] and A[j]. Finally swap the pivot into A[i], its correct position w = i. Quicksort then recurses on both sides. Unlike Mergesort there is no combine step: split already places the pivot.`,
+ what:`Split uses x = A[low] as the pivot. j scans the rest; i marks the end of the zone ≤ x. When A[j] ≤ x, increment i and interchange A[i] and A[j]. Finally swap the pivot into A[i], its correct position w = i. Quick Sort then recurses on both sides. Unlike Merge Sort there is no combine step: split already places the pivot.`,
  key:`Balanced splits give Θ(n log n). Highly unbalanced splits, such as on an already sorted array, give Θ(n²).`,
  pseudo:[[0,'procedure quicksort(A, low, high)'],[1,'if low < high then'],[2,'split(A[low..high], w)   {w = new position of A[low]}'],[2,'quicksort(A, low, w − 1)'],[2,'quicksort(A, w + 1, high)'],[1,'end if'],[0,'procedure split(A[low..high])'],[1,'i ← low; x ← A[low]'],[1,'for j ← low + 1 to high'],[2,'if A[j] ≤ x then'],[3,'i ← i + 1'],[3,'if i ≠ j then interchange A[i] and A[j]'],[2,'end if'],[1,'end for'],[1,'interchange A[low] and A[i]'],[1,'w ← i; return A and w']],
  cx:[['Best','Θ(n log n)','Partitions are about equal.'],['Average','Θ(n log n)','Typical splits are reasonably balanced.'],['Worst','Θ(n²)','Highly unbalanced partitions, e.g. already sorted input.'],['Space','O(n) worst case','In place, but the recursion stack can reach O(n).'],['Split alone','Θ(n)','Exactly n − 1 comparisons, Θ(1) space.']],
@@ -1137,7 +1321,7 @@ const TOPICS=[
     ['2T(n/2) + n/log n','log₂2=1=k, p=−1','Case 2 ⇒ Θ(n log log n)']]}}]]},
 
 {group:'Recursion',id:'quicksort-recurrence',title:'Quick Sort’s Running Time',tagline:'One recurrence, three very different answers depending on where the pivot lands.',cols:[
- [{p:'Split uses A[low] as the pivot, moves elements ≤ pivot left and places the pivot in its final position: exactly n − 1 comparisons, Θ(n). Quicksort then recurses on each side.'},
+ [{p:'Split uses A[low] as the pivot, moves elements ≤ pivot left and places the pivot in its final position: exactly n − 1 comparisons, Θ(n). Quick Sort then recurses on each side.'},
   {table:{head:['Case','Recurrence','Result'],th:true,rows:[
     ['Worst (pivot lands at one end, e.g. sorted input)','T(n) = T(n−1) + (n−1)','n(n−1)/2 = Θ(n²)'],
     ['Best (pivot lands in the middle)','T(n) = 2T(n/2) + n−1','Θ(n log n)']]}}],
@@ -1172,6 +1356,7 @@ function algoHtml(a){
 }
 function secHead(id,title,sub){return `<div class="sec-head" id="${id}"><h2 class="text-fluid-md">${title}</h2>${sub?`<p>${sub}</p>`:''}</div>`;}
 
+function labelTables(){document.querySelectorAll('table').forEach(t=>{const h=[...t.querySelectorAll('thead th')].map(x=>x.textContent.trim());t.querySelectorAll('tbody tr').forEach(r=>[...r.children].forEach((td,i)=>{td.dataset.label=h[i]||'';}));});}
 function renderPage(){
   const props=[['Definiteness','Every step is clear and unambiguous.'],['Effectiveness','Each step can, in principle, be done with pencil and paper in finite time — integer arithmetic, for example.'],['Input and output','Zero or more external inputs; one or more outputs.'],['Finiteness','It terminates after a finite number of operations.']];
   const not=[['O','Upper bound','Running time grows at most at this rate.'],['Ω','Lower bound','Running time grows at least at this rate.'],['Θ','Tight bound','Running time grows at exactly this rate. These notes use Θ.']];
@@ -1205,7 +1390,7 @@ function renderPage(){
   });
 
   const nav=document.getElementById('index');
-  nav.innerHTML=`<a href="#foundations-h" data-t="foundations">Basics</a><span class="sep"></span>`+ALGOS.map(a=>`<a href="#${a.id}" data-t="${a.id}">${a.short}</a>`).join('')+`<span class="sep"></span><a href="#cheat-h" data-t="cheat">Cheat sheet</a><span class="sep"></span><a href="#complexity-h" data-t="complexity">Complexity</a><a href="#recursion-h" data-t="recursion">Recursion</a><span class="sep"></span><a href="Reductions.html#graph-review-h">Graphs</a><a href="Reductions.html#np-basics-h">P &amp; NP</a><a href="Reductions.html#np-complete-h">NP-complete</a><a href="Reductions.html#co-np-h">Co-NP</a><a href="Reductions.html#reductions-h">Reductions</a><span class="sep"></span><a href="Reductions.html#red-circuit">Circuit-SAT → SAT</a><a href="Reductions.html#red-3sat">SAT → 3SAT</a><a href="Reductions.html#red-hc">HC → TSP</a><a href="Reductions.html#red-clique">SAT → Clique</a><a href="Reductions.html#red-vcis">VC ↔ IS</a><a href="Reductions.html#red-vc">SAT → VC</a><button type="button" id="theme"></button>`;
+  nav.innerHTML=`<a href="#foundations-h" data-t="foundations">Basics</a><span class="sep"></span>`+ALGOS.map(a=>`<a href="#${a.id}" data-t="${a.id}">${a.short}</a>`).join('')+`<span class="sep"></span><a href="#cheat-h" data-t="cheat">Cheat sheet</a><span class="sep"></span><a href="#complexity-h" data-t="complexity">Complexity</a><a href="#recursion-h" data-t="recursion">Recursion</a><span class="sep"></span><a href="Reductions.html#graph-review-h">Graphs</a><a href="Reductions.html#np-basics-h">P &amp; NP</a><a href="Reductions.html#np-complete-h">NP-complete</a><a href="Reductions.html#co-np-h">Co-NP</a><a href="Reductions.html#reductions-h">Reductions</a><span class="sep"></span><a href="Reductions.html#red-circuit">Circuit-SAT → SAT</a><a href="Reductions.html#red-3sat">SAT → 3SAT</a><a href="Reductions.html#red-hc">HC → TSP</a><a href="Reductions.html#red-clique">SAT → Clique</a><a href="Reductions.html#red-vcis">VC ↔ IS</a><a href="Reductions.html#red-vc">SAT → VC</a><a href="Reductions.html#red-dhc">HC → Directed HC</a><a href="Reductions.html#red-vc3">3SAT → VC</a><a href="Reductions.html#red-3col">3SAT → 3Color</a><button type="button" id="theme"></button>`;
   const root=document.documentElement;
   const isDark=()=>root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
   const SUN='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -1258,7 +1443,7 @@ function initEffects(){
 if(typeof document==='undefined'){
   module.exports={genLinear,genBinary,genMerge,genBottomUp,genSelection,genInsertion,genBubble,genRadix,genQuick};
 }else{
-  renderPage();initEffects();
+  renderPage();labelTables();initEffects();
 }
 </script>
 </body>
