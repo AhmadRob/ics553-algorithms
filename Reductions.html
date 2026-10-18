@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reductions | ICS 553</title>
-<meta name="description" content="KFUPM ICS 553 notes by Ahmed Abualrob: graph review and reductions.">
+<meta name="description" content="KFUPM ICS 553 notes by Ahmed Abualrob: graph review, P and NP, NP-completeness and nine reductions with step-by-step visualizers.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -457,6 +457,40 @@ tbody tr:hover{background:var(--tint)}
   .def p{font-size:1.1rem}
 }
 
+/* ---------- mobile alignment fixes (both pages) ---------- */
+main ol,main ul{padding-left:1.5em}
+main li{padding-left:.15em}
+main li::marker{color:var(--muted);font-variant-numeric:tabular-nums}
+main p,main li,main td,.nt span,.note,.cap,.card-subtitle,.io div,.key p{overflow-wrap:break-word}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.tree-wrap svg{display:block;margin:0 auto}
+
+@media (max-width:640px){
+  /* tables become one small card per row, labelled by column */
+  .tbl-wrap{border:0;border-radius:0;overflow:visible}
+  .tbl-wrap table,.tbl-wrap tbody,.tbl-wrap tr,.tbl-wrap td{display:block;width:100%}
+  .tbl-wrap thead{display:none}
+  .tbl-wrap tr{border:1px solid var(--gb-strong);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:10px;background:var(--tint)}
+  .tbl-wrap tbody tr:hover{background:var(--tint)}
+  .tbl-wrap td{border:0;padding:4px 0;display:grid;grid-template-columns:minmax(78px,32%) minmax(0,1fr);gap:10px;align-items:baseline}
+  .tbl-wrap td::before{content:attr(data-label);font:500 .64rem 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .tbl-wrap td:first-child{display:block;font-weight:700;padding-bottom:6px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+  .tbl-wrap td:first-child::before{display:none}
+  .tbl-wrap td.th{min-width:0}
+  /* bars: fit a 10-element array across a phone */
+  .cells{gap:4px}
+  .cell .val{font-size:11px}
+  .cell .ptr{font-size:9px}
+  .stage{padding:14px 10px}
+  .inputs{width:100%}
+  .inputs .in.arr{flex:1 1 160px;width:auto}
+  .legend{gap:6px 14px}
+}
+
+/* bars shrink to fit the panel instead of scrolling */
+.cells{width:100%;justify-content:center}
+.cell{flex:1 1 0;min-width:20px;max-width:42px}
+
 /* ---------- diagrams: shared palette + node/edge styles ---------- */
 :root{
   --d-blue:#2563EB;--d-green:#059669;--d-amber:#D97706;--d-rose:#E11D48;--d-violet:#7C3AED;--d-teal:#0891B2;
@@ -522,7 +556,7 @@ svg.dg{overflow:visible}
 [data-viz="vcis"] .dg .tn.cur circle{fill:var(--d-teal);stroke:var(--d-teal);stroke-width:1.8}
 [data-viz="vcis"] .dg .tn.cur text{fill:var(--d-on)}
 [data-viz="vcis"] .dg .tn.clq circle{fill:var(--d-violet);stroke:var(--d-violet)}
-[data-viz="vc"],.fig-vc{--vis-h:var(--d-amber);--cur-h:var(--d-green)}
+[data-viz="vc"],[data-viz="vc3"],.fig-vc{--vis-h:var(--d-amber);--cur-h:var(--d-green)}
 .dg .te.e-var{stroke:var(--d-blue);stroke-width:3}
 .dg .te.e-cl{stroke:var(--d-violet);stroke-width:3}
 .dg .te.e-con{stroke:var(--d-edge-strong);stroke-dasharray:5 5}
@@ -575,6 +609,17 @@ svg.dg{overflow:visible}
   [data-w="redmap"] .widget{overflow-x:auto;-webkit-overflow-scrolling:touch}
   [data-w="redmap"] .cap::before{content:"Swipe the map sideways. ";font-weight:600}
 }
+
+/* homework visualizers */
+.dg .te.arc{stroke:var(--d-blue);stroke-width:2;opacity:.85}
+.dg .te.arc.dim{opacity:.18}
+.dg .te.arc-hot{stroke:var(--d-green);stroke-width:3.6}
+.dg .arrow-blue{fill:var(--d-blue)}
+.dg .arrow-hot{fill:var(--d-green)}
+.dg .tn.ghost text{font-size:10px}
+.sw.k-ring-violet{background:color-mix(in srgb,var(--d-violet) 18%,transparent);border:2.5px solid var(--d-violet)}
+.dg .tn.vis.cur text,.dg .tn.cur text{fill:var(--d-text)}
+[data-viz="vcis"] .dg .tn.cur text{fill:var(--d-on)}
 </style>
 </head>
 <body>
@@ -585,7 +630,7 @@ svg.dg{overflow:visible}
   <section class="hero-section">
     <div class="hero-content">
       <h1 class="text-fluid-xl" id="heroTitle">Reductions</h1>
-      <div class="glass-layer subtitle-glass">Graphs, P and NP, and six reductions you can step through</div>
+      <div class="glass-layer subtitle-glass">Graphs, P and NP, and nine reductions you can step through</div>
       <div class="contact-links mono">
         <a href="#graph-review">Start reading</a>
         <a href="#reductions">Jump to the reductions</a>
@@ -719,26 +764,26 @@ const TOPICS=[
   {p:`Given a CNF formula (an AND of clauses, each an OR of literals), such as f = (x₁ ∨ x₂) ∧ (x̄₁ ∨ x₂ ∨ x₃), does some truth assignment make f true?`},
   {key:`SAT ∈ NP: n variables give 2ⁿ assignments, too many to try. But one assignment (the witness) is checked in polynomial time: plug it in and evaluate. True means f is satisfiable.`}]]},
 
-{sec:'np-complete',group:'NP-complete',id:'hc-tsp',title:`Hamiltonian Cycle and Traveling Salesman`,tagline:`A first complete reduction, HC ∝ₚ TS.`,cols:[
+{sec:'np-complete',group:'NP-complete',id:'hc-tsp',title:`Hamiltonian Cycle and Traveling Salesman`,tagline:`A first complete reduction, HC ∝ₚ TSP.`,cols:[
  [{sub:`Hamiltonian Cycle (HC)`},
   {p:`Given a graph G, is there a cycle that visits every vertex exactly once? Of the two 6-vertex graphs in the notes, the first has one and the second does not. (This G₁ is not the 4-vertex G₁ from the review section.)`},
-  {sub:`Traveling Salesman (TS)`},
-  {p:`Given n cities, the distances between them and a threshold k, is there a tour (a cycle visiting each city once) of length ≤ k? For G₃, TS(G₃, 10) = No and TS(G₃, 15) = Yes.`}],
- [{sub:`HC ∝ₚ TS`},
-  {p:`From an HC instance G = (V, E) with n vertices, build a TS instance G′ = (V, E′):`},
+  {sub:`Traveling Salesman (TSP; the lecture notes write TS)`},
+  {p:`Given n cities, the distances between them and a threshold k, is there a tour (a cycle visiting each city once) of length ≤ k? For G₃, TSP(G₃, 10) = No and TSP(G₃, 15) = Yes.`}],
+ [{sub:`HC ∝ₚ TSP`},
+  {p:`From an HC instance G = (V, E) with n vertices, build a TSP instance G′ = (V, E′):`},
   {ol:[`Make G′ complete: E′ holds every pair of distinct vertices, so |E′| = n(n − 1)/2.`,`Weight a pair 1 if (x, y) is an edge of G, and n if not.`,`Set k = n.`]},
-  {p:`This is polynomial. A tour has exactly n edges. (⇒) A Hamiltonian cycle of G is a tour of n weight-1 edges: length n ≤ n. (⇐) A tour of length ≤ n uses only weight-1 edges, since one weight-n edge brings the total to at least (n − 1) + n > n. So every edge is in G, and the tour is a Hamiltonian cycle. Hence HC(G) = Yes ⇔ TS(G′, n) = Yes. In the notes (n = 6): HC(G₁) = Yes and TS(G₁′, 6) = Yes; HC(G₂) = No and TS(G₂′, 6) = No.`}]]},
+  {p:`This is polynomial. A tour has exactly n edges. (⇒) A Hamiltonian cycle of G is a tour of n weight-1 edges: length n ≤ n. (⇐) A tour of length ≤ n uses only weight-1 edges, since one weight-n edge brings the total to at least (n − 1) + n > n. So every edge is in G, and the tour is a Hamiltonian cycle. Hence HC(G) = Yes ⇔ TSP(G′, n) = Yes. In the notes (n = 6): HC(G₁) = Yes and TSP(G₁′, 6) = Yes; HC(G₂) = No and TSP(G₂′, 6) = No.`}]]},
 
 {sec:'np-complete',group:'NP-complete',id:'npc-def',title:`Definition of NP-Complete`,tagline:`In NP, and every problem in NP reduces to it.`,cols:[
  [{p:`A decision problem A is NP-complete if:`},
   {ol:[`A ∈ NP, and`,`every B ∈ NP reduces to A in polynomial time (B ∝ₚ A). This second property is called NP-hard.`]},
   {p:`NP-complete = in NP and NP-hard. The diagram shows this for SAT: every NP problem reduces to SAT, and SAT ∈ NP, so SAT is NP-complete (Cook’s theorem).`},
   {svg:'np'}],
- [{p:`With one NP-complete problem in hand, proving a new problem A NP-complete is easier: show A ∈ NP, then reduce a known NP-complete problem to A. Transitivity does the rest. Example: HC ∝ₚ TS makes TS NP-hard, and TS ∈ NP, so TS is NP-complete.`}]]},
+ [{p:`With one NP-complete problem in hand, proving a new problem A NP-complete is easier: show A ∈ NP, then reduce a known NP-complete problem to A. Transitivity does the rest. Example: HC ∝ₚ TSP makes TSP NP-hard, and TSP ∈ NP, so TSP is NP-complete.`}]]},
 
 {sec:'np-complete',group:'NP-complete',id:'reduction-map',title:`The Reduction Map`,tagline:`Which problem reduces to which. Click a problem to follow the arrows.`,cols:[
  [{p:`π is NP-complete if (1) π ∈ NP and (2) π is NP-hard: every π′ ∈ NP has π′ ∝ₚ π.`},
-  {p:`New NP-complete proofs reduce a known NP-complete problem to the new one; transitivity passes the hardness along. The map starts at Circuit-SAT → SAT, and SAT and 3SAT reduce to each other. SAT reduces to Clique and Vertex Cover (VC). Clique, VC and Independent Set (IS) reduce to each other; VC reduces to Set Cover, and IS to Hamiltonian Cycle (HC) by way of VC (IS → VC → HC). 3SAT reduces to VC, 3Color, HC and Subset Sum. HC reduces to TSP and directed HC; Subset Sum reduces to Knapsack. Homework reductions: Clique → IS, 3SAT → VC, HC → directed HC (the study guide lists 3SAT → 3Color instead of Clique → IS, so all four count as homework here).`}],
+  {p:`New NP-complete proofs reduce a known NP-complete problem to the new one; transitivity passes the hardness along. The map starts at Circuit-SAT → SAT, and SAT and 3SAT reduce to each other. SAT reduces to Clique and Vertex Cover (VC). Clique, VC and Independent Set (IS) reduce to each other; VC reduces to Set Cover, and IS to Hamiltonian Cycle (HC) by way of VC (IS → VC → HC). 3SAT reduces to VC, 3Color, HC and Subset Sum. HC reduces to TSP and Directed HC; Subset Sum reduces to Knapsack. Homework reductions: Clique → IS, 3SAT → VC, HC → Directed HC (the study guide lists 3SAT → 3Color instead of Clique → IS, so all four count as homework here).`}],
  []],full:[{w:'redmap'}]},
 
 {sec:'np-complete',group:'NP-complete',id:'clique',title:`Clique is NP-Complete`,tagline:`SAT ∝ₚ Clique, one vertex per literal occurrence.`,cols:[
@@ -912,12 +957,51 @@ const RED=[
  example:[`(x ∨ y) ∧ (¬x ∨ ¬y): n = 2, k = 2 + 1 + 1 = 4. Take x = T, y = F. Cover: {x, ¬y, c1y, c2¬x}. Clause 1 leaves out c1x, whose connection edge is covered by x. Clause 2 leaves out c2¬y, covered by ¬y. All 8 edges are covered by 4 vertices.`]},
 ];
 
-const HOMEWORK_INTRO=`The six above are the main reductions from the professor's notes. The rest are homework, and just as important. The two sets of notes disagree on which: the lecture notes list Clique → IS, 3SAT → VC and HC → directed HC; the study guide lists HC → directed HC, 3SAT → VC and 3SAT → 3Color. All four are below. Confirm which set was actually assigned.`;
+const HOMEWORK_INTRO=`The six above are the main reductions from the professor's notes. The rest are homework, and just as important. The two sets of notes disagree on which: the lecture notes list Clique → IS, 3SAT → VC and HC → Directed HC; the study guide lists HC → Directed HC, 3SAT → VC and 3SAT → 3Color. All four are below. Confirm which set was actually assigned.`;
 const HOMEWORK=[
- [`Reduction 7`,`HC → Directed HC`],
- [`Reduction 8`,`3SAT → VC`],
- [`Reduction 9`,`3SAT → 3Color`],
  [`Reduction 10`,`Clique → IS`]];
+
+/* ---------- homework reductions with full notes ---------- */
+const HWRED=[
+{id:'red-dhc',viz:'dhc',tag:`Reduction 7 · homework`,name:`HC → Directed HC`,tagline:`An undirected edge can be walked either way, so replace it with two arcs.`,
+ from:`Undirected graph G`,to:`Directed graph D`,
+ problem:[`HC asks whether an undirected graph G has a cycle through every vertex exactly once. Directed HC asks whether a directed graph D has a cycle through every vertex exactly once, following the arrow directions.`],
+ idea:[`An undirected edge can be walked either way, so replace it with two arrows, one each way.`],
+ construction:[`Keep the same vertex set V.`,`For each edge {u, v} in G, add both arcs u → v and v → u to D.`],
+ after:[{nt:`Small graphs`,b:`Assume |V| ≥ 3, since a Hamiltonian cycle in a simple graph needs at least 3 vertices. With |V| = 2, the directed cycle u → v → u would use one edge twice.`}],
+ k:[`None.`],
+ inNP:[`The witness is an ordering of the vertices. Check that each vertex appears once and that every consecutive pair, including last → first, is an arc of D.`],
+ fwd:[`Take a Hamiltonian cycle v1, v2, …, vn, v1 in G. Each edge {vi, vi+1} gave the arc vi → vi+1 in D. So v1 → v2 → … → vn → v1 is a directed Hamiltonian cycle.`],
+ bwd:[`Take a directed Hamiltonian cycle v1 → v2 → … → vn → v1 in D. Each arc vi → vi+1 came from the edge {vi, vi+1} of G. So the same sequence is a Hamiltonian cycle in G.`],
+ time:[`D has |V| vertices and 2|E| arcs.`],
+ example:[`G is the square 1–2–3–4–1. D has 8 arcs: 1⇄2, 2⇄3, 3⇄4, 4⇄1. The cycle 1 → 2 → 3 → 4 → 1 uses arcs of D, so the answer is Yes.`,`If G is the path 1–2–3, then D has arcs 1⇄2 and 2⇄3. A cycle through all three vertices would need an arc between 3 and 1, and there is none. So the answer is No in both.`],
+ note:[{nt:`The other direction`,b:`This direction is the easy one. The reverse, Directed HC → HC, is harder: each vertex v is split into a path v_in – v_mid – v_out so that the direction is forced.`}]},
+
+{id:'red-vc3',viz:'vc3',tag:`Reduction 8 · homework`,name:`3SAT → VC`,tagline:`Reduction 6 with every clause clique a triangle, so k = n + 2m.`,
+ from:`3CNF formula, n variables, m clauses`,to:`Graph G and k = n + 2m`,
+ problem:[`3SAT takes a CNF formula with exactly 3 literals per clause. VC asks whether G has a vertex cover of size ≤ k.`],
+ idea:[`This is reduction 6 specialized to 3SAT, so every clause clique is a triangle. Variable edges force a choice of true/false. Each triangle can leave out one vertex, and the left-out vertex must point to a true literal.`],
+ cintro:`Let the formula have n variables and m clauses.`,
+ construction:[`Variable edges: for each variable xi, make vertices xi and ¬xi and join them.`,`Clause triangles: for each clause Cj = (l1 ∨ l2 ∨ l3), make 3 vertices cj,l1, cj,l2, cj,l3 and join all three.`,`Connections: join each clause vertex cj,l to the variable vertex l.`],
+ k:[`k = n + 2m.`,`Each variable edge needs at least 1 of its 2 endpoints: n in total.`,`Each triangle needs at least 2 of its 3 vertices, because leaving out 2 leaves their edge uncovered: 2m in total.`,`So any cover has size ≥ n + 2m. A cover of size k takes exactly 1 per variable edge and exactly 2 per triangle.`],
+ inNP:[`The witness is a vertex set. Check that its size is ≤ k and that every edge has an endpoint in it.`],
+ fwd:[`Take a satisfying assignment. For each variable, put its true literal vertex in the cover: n vertices.`,`In each clause, choose one true literal. Leave its triangle vertex out and put the other 2 in: 2m vertices.`,`Check: each variable edge is covered. Each triangle edge is covered, since only one vertex is out. The connection edge from the left-out vertex goes to a true literal vertex, which is in the cover. All other connection edges have their triangle end in the cover.`],
+ bwd:[`Take a cover of size ≤ k. By the count above, it has exactly one of xi, ¬xi and exactly 2 vertices per triangle.`,`Set a literal true if its variable vertex is in the cover. This is consistent, since exactly one of xi, ¬xi is chosen.`,`In each triangle, one vertex cj,l is out. Its connection edge to l must be covered from the other end, so l is in the cover, meaning l is true. So every clause has a true literal.`],
+ time:[`2n + 3m vertices and n + 3m + 3m = n + 6m edges, which is linear.`],
+ example:[`(x ∨ y ∨ z) ∧ (¬x ∨ ¬y ∨ z). Here n = 3, m = 2, and k = 3 + 4 = 7. Take x = T, y = F, z = F, which satisfies both clauses.`,`Variable vertices: x, ¬y, ¬z. Clause 1: x is true, so leave c1,x out and take c1,y, c1,z. Clause 2: ¬y is true, so leave c2,¬y out and take c2,¬x, c2,z.`,`Cover = {x, ¬y, ¬z, c1,y, c1,z, c2,¬x, c2,z}, which has 7 vertices.`,`Check the left-out vertices: c1,x – x is covered by x, and c2,¬y – ¬y is covered by ¬y. All 15 edges (3 variable, 6 triangle, 6 connection) are covered.`]},
+
+{id:'red-3col',viz:'col3',tag:`Reduction 9 · homework`,name:`3SAT → 3Color`,tagline:`Colors True, False and Base; an OR gadget per pair of literals.`,
+ from:`3CNF formula, n variables, m clauses`,to:`Graph G (3 colors)`,
+ problem:[`3SAT takes a CNF formula with exactly 3 literals per clause. 3Color asks whether the vertices of G can be colored with 3 colors so that every edge has endpoints of different colors.`],
+ idea:[`Use the 3 colors as "True", "False", and "Base". Literal vertices are forced to be True or False. Each clause gets an OR gadget whose output can be True only if some input is True, and the output is then forced to be True.`],
+ construction:[`Palette triangle: make vertices T, F, B and join all three. They must get 3 different colors, so each color can be named after its vertex.`,`Variable gadgets: for each variable xi, make vertices xi and ¬xi. Join xi – ¬xi, xi – B, and ¬xi – B. So each literal is colored T or F, and xi and ¬xi get opposite colors.`,`OR gadget with inputs a, b and output r: make vertices p, q, r. Join p – a, q – b, and the triangle p – q – r.`,`Clause gadgets: for each clause (a ∨ b ∨ c), chain two OR gadgets: r1 = OR(a, b), then r2 = OR(r1, c). Join r2 to both F and B, which forces r2 = T.`],
+ after:[{h:`OR gadget facts (inputs colored T or F)`},{ul:[`Both inputs F ⇒ output forced F. p and q are next to F, so they are in {T, B} and differ, so {p, q} = {T, B}. r is next to both, so r = F.`,`Some input T ⇒ output can be T. For a = T, b = F, use p = F, q = B, r = T. For a = F, b = T, use p = B, q = F, r = T. For a = T, b = T, use p = F, q = B, r = T.`]}],
+ k:[`None. The 3 is fixed.`],
+ inNP:[`The witness is a coloring. Check that it uses at most 3 colors and that every edge's endpoints differ. This takes O(|V| + |E|).`],
+ fwd:[`Take a satisfying assignment. Color the palette with T, F, B. Color each literal vertex T if it is true and F if it is false. The variable gadgets are valid.`,`In each clause (a ∨ b ∨ c): if a or b is true, color r1 = T, using the facts above. Then OR(r1 = T, c) can output r2 = T. If only c is true, then a = b = F, so r1 = F. Then OR(F, c = T) can output r2 = T.`,`r2 = T differs from F and B, so the coloring is valid.`],
+ bwd:[`Take a valid 3-coloring and name the colors after the palette vertices.`,`Each literal vertex is next to B, so it is colored T or F. Also, xi and ¬xi differ. Set xi true if it is colored T. This is consistent.`,`Suppose some clause has a = b = c = F. Then r1 is forced to F, and so r2 = OR(F, F) is forced to F. But r2 is joined to F, which is a contradiction. So every clause has a true literal.`],
+ time:[`3 + 2n + 6m vertices and 3 + 3n + 12m edges, which is linear.`],
+ example:[`(x ∨ y ∨ z). Take x = F, y = F, z = T. Literals: x = F, ¬x = T, y = F, ¬y = T, z = T, ¬z = F.`,`First OR (x, y both F): p1 = T, q1 = B, r1 = F. Check: p1 – x is T/F, and q1 – y is B/F.`,`Second OR (r1 = F, z = T): p2 = B, q2 = F, r2 = T. Check: p2 – r1 is B/F, q2 – z is F/T, r2 – F is T/F, and r2 – B is T/B.`,`All edges are valid, so the answer is Yes.`,`Now try x = y = z = F. r1 is forced to F, so r2 is forced to F, which clashes with the edge r2 – F. So no coloring extends this assignment, which is exactly what the (⇐) proof says.`]}];
 
 
 /* =====================================================================
@@ -1672,7 +1756,7 @@ function buildMap(host){
     if(sel)MAPE.forEach(([a,b])=>{if(a===sel)to.push(MAPN[b].l);if(b===sel)from.push(MAPN[a].l);});
     host.innerHTML=`<div class="widget">${mapSvg(sel)}
       <div class="map-legend"><span class="lg"><i class="sw k-green"></i>SAT family</span><span class="lg"><i class="sw k-violet"></i>Clique, IS, VC, Set Cover</span><span class="lg"><i class="sw k-rose"></i>Coloring</span><span class="lg"><i class="sw k-blue"></i>Cycles and tours</span><span class="lg"><i class="sw k-amber"></i>Numbers</span>${sel?`<span class="lg"><i class="sw k-line-blue"></i>reduces to</span><span class="lg"><i class="sw" style="background:var(--d-amber);border-color:var(--d-amber);height:4px;border-radius:2px"></i>reduces from</span>`:''}</div>
-      <p class="cap">${sel?`<b>${esc(MAPN[sel].l)}</b> reduces to: ${to.length?esc(to.join(', ')):'nothing on this map'}. Reduces to <b>${esc(MAPN[sel].l)}</b>: ${from.length?esc(from.join(', ')):'nothing on this map'}. Click it again to clear.`:`Click a problem to trace its arrows. A → B means A ∝ₚ B. Dashed arrows are homework: Clique → IS, 3SAT → VC, HC → directed HC, 3SAT → 3Color.`}</p></div>`;
+      <p class="cap">${sel?`<b>${esc(MAPN[sel].l)}</b> reduces to: ${to.length?esc(to.join(', ')):'nothing on this map'}. Reduces to <b>${esc(MAPN[sel].l)}</b>: ${from.length?esc(from.join(', ')):'nothing on this map'}. Click it again to clear.`:`Click a problem to trace its arrows. A → B means A ∝ₚ B. Dashed arrows are homework: Clique → IS, 3SAT → VC, HC → Directed HC, 3SAT → 3Color.`}</p></div>`;
   }
   host.addEventListener('click',e=>{const g=e.target.closest('[data-n]');if(!g)return;sel=sel===g.dataset.n?null:g.dataset.n;paint();});
   host.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const g=e.target.closest('[data-n]');if(!g)return;e.preventDefault();sel=sel===g.dataset.n?null:g.dataset.n;paint();const again=host.querySelector(`[data-n="${sel||g.dataset.n}"]`);if(again)again.focus();});
@@ -1698,7 +1782,7 @@ SVGS.rel=()=>`<svg viewBox="0 0 520 270" width="100%" height="270" style="max-wi
 const REDVIZ={circuit:modCircuit,sat3:modSat3,hc:modHC,clique:modClique,vcis:modVCIS,vc:modVC};
 
 /* =====================================================================
-   Static figures (graph review, P/NP pictures), colour-coded
+   Static figures (graph review, P/NP pictures), color-coded
    Overrides the original monochrome SVGS entries.
    ===================================================================== */
 const FIG=(w,h,inner,label,max)=>`<svg class="dg" viewBox="0 0 ${w} ${h}" width="100%" style="max-width:${max||Math.round(w*1.25)}px;display:block;margin:0 auto 14px" role="img" aria-label="${esc(label)}">${inner}</svg>`;
@@ -1748,7 +1832,7 @@ SVGS.rooted=()=>{
   'Rooted tree of height 3; the longest root-to-leaf path is highlighted');
 };
 
-/* isomorphism: matching colours show theta */
+/* isomorphism: matching colors show theta */
 SVGS.iso=()=>{
   const g1={1:[50,58],2:[50,168],3:[150,113],4:[240,113]};
   const g2={w:[340,113],x:[430,113],y:[530,58],z:[530,168]};
@@ -1759,10 +1843,10 @@ SVGS.iso=()=>{
   s+=`<text class="lab-big" x="290" y="113" dominant-baseline="central" text-anchor="middle" style="font-size:26px">≅</text>`;
   s+=fT(145,205,'G₁')+fT(435,205,'G₂');
   s+=`<text x="290" y="232" dominant-baseline="central" text-anchor="middle" class="lab-cap" style="font-size:12px">θ:  <tspan class="lab-h h-blue">1→y</tspan>   <tspan class="lab-h h-green">2→z</tspan>   <tspan class="lab-h h-violet">3→x</tspan>   <tspan class="lab-h h-amber">4→w</tspan></text>`;
-  return FIG(580,245,s,'Two isomorphic graphs; matching colours give the isomorphism theta');
+  return FIG(580,245,s,'Two isomorphic graphs; matching colors give the isomorphism theta');
 };
 
-/* coloring: an actual 4-colouring, with the 4-clique outlined */
+/* coloring: an actual 4-coloring, with the 4-clique outlined */
 SVGS.coloring=()=>{
   const P={b:[72,58],e:[242,58],f:[72,188],h:[242,188],g:[330,123]};
   const hue={b:'blue',e:'green',f:'amber',h:'rose',g:'blue'};
@@ -1805,6 +1889,247 @@ SVGS.rel=()=>FIG(560,300,
   fT(280,280,'NP ∩ Co-NP'),
 'NP and Co-NP overlap; P and NP-intermediate sit in the overlap; NPC and Co-NPC sit outside it',640);
 
+/* =====================================================================
+   Homework reductions: visualizers
+   7. HC -> Directed HC   8. 3SAT -> VC   9. 3SAT -> 3Color
+   ===================================================================== */
+
+/* ---------- 7. HC -> Directed HC ---------- */
+function hamCycle(n,E){
+  const A=adjMat(n,E);
+  const best=tspBest(n,(a,b)=>A[a][b]?1:1000);
+  return best.w===n?best.tour:null;
+}
+function drawDHC(G,pos,directed,cyc){
+  const W=360,H=270,R=19,n=G.V.length;
+  const onCyc=new Set();
+  if(cyc)for(let i=0;i<cyc.length-1;i++)onCyc.add(cyc[i]+'>'+cyc[i+1]);
+  const undirOn=(a,b)=>onCyc.has(a+'>'+b)||onCyc.has(b+'>'+a);
+  let s=`<defs><marker id="dh-n" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path class="arrow-blue" d="M0,0L10,5L0,10z"/></marker><marker id="dh-h" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path class="arrow-hot" d="M0,0L10,5L0,10z"/></marker></defs>`;
+  const arc=(a,b,cls,mk)=>{
+    const A=pos[a],B=pos[b];let dx=B.x-A.x,dy=B.y-A.y;const L=Math.hypot(dx,dy);dx/=L;dy/=L;
+    const nx=-dy,ny=dx,off=16;
+    const sx=A.x+dx*R+nx*6,sy=A.y+dy*R+ny*6,ex=B.x-dx*(R+4)+nx*6,ey=B.y-dy*(R+4)+ny*6;
+    const cx=(A.x+B.x)/2+nx*off,cy=(A.y+B.y)/2+ny*off;
+    return `<path class="${cls}" d="M${f1(sx)} ${f1(sy)} Q${f1(cx)} ${f1(cy)} ${f1(ex)} ${f1(ey)}" marker-end="url(#${mk})"/>`;
+  };
+  G.E.forEach(([a,b])=>{
+    if(!directed){s+=sLine(pos[a],pos[b],cyc?(undirOn(a,b)?'te hot':'te dim'):'te on');return;}
+    [[a,b],[b,a]].forEach(([u,v])=>{
+      const hot=onCyc.has(u+'>'+v);
+      s+=arc(u,v,hot?'te arc-hot':(cyc?'te arc dim':'te arc'),hot?'dh-h':'dh-n');
+    });
+  });
+  pos.forEach((p,i)=>{s+=sNode(p,G.V[i],'vis',R);});
+  return svgW(W,H,s,directed?'Directed graph D':'Graph G');
+}
+const modDHC={
+  presets:[
+    {l:'Square (Yes)',inst:{text:'1-2, 2-3, 3-4, 4-1'}},
+    {l:'Path 1–2–3 (No)',inst:{text:'1-2, 2-3'}},
+    {l:'House (Yes)',inst:{text:'1-2, 2-3, 3-4, 4-5, 5-1, 2-5'}},
+    {l:'Bowtie (No)',inst:{text:'1-2, 2-3, 3-1, 3-4, 4-5, 5-3'}}],
+  inputHtml:`<label class="lab">Edges <input class="in" data-i="text" style="width:min(320px,58vw)" spellcheck="false" aria-label="Edges of G"></label>`,
+  read:h=>({text:h.querySelector('[data-i=text]').value}),
+  write:(h,i)=>{h.querySelector('[data-i=text]').value=i.text;},
+  steps:[
+    `Keep the same vertex set V.`,
+    `For each edge {u, v} in G, add both arcs u → v and v → u.`,
+    `k: none. Directed HC has no number to carry across.`,
+    `(⇒) Walk G's Hamiltonian cycle in one direction: every step is an arc of D.`,
+    `(⇐) Each arc of a directed Hamiltonian cycle came from an edge of G.`,
+    `HC(G) = Yes ⇔ Directed HC(D) = Yes.`],
+  legend:[['k-line','Edge of G'],['k-line-blue','Arc of D (two per edge)'],['k-line-green','Hamiltonian cycle']],
+  gen(inst){
+    const G=parseEdges(inst.text,8);const n=G.V.length;
+    if(n<3)throw new Error('Use at least 3 vertices: a Hamiltonian cycle needs 3.');
+    const pos=circ(n,180,135,100);
+    const cyc=hamCycle(n,G.E);
+    const seq=t=>t.map(i=>G.V[i]);
+    const F=[];
+    F.push({board:drawDHC(G,pos,false,null),chips:[['|V|',n],['|E|',G.E.length]],note:`The HC instance: undirected G with ${n} vertices and ${G.E.length} edges. Is there a cycle through every vertex exactly once?`,line:[1]});
+    F.push({board:drawDHC(G,pos,true,null),chips:[['|V|',n],['arcs in D',2*G.E.length]],note:`Replace each edge {u, v} with the two arcs u → v and v → u. D has the same ${n} vertices and 2|E| = ${2*G.E.length} arcs.`,line:[1,2]});
+    F.push({board:drawDHC(G,pos,true,null),chips:[['k','none',true]],note:`There is no k to set. The conversion only copies each edge twice, so it takes O(|V| + |E|) time.`,line:[3]});
+    if(cyc){
+      F.push({board:drawDHC(G,pos,false,cyc),chips:[['cycle in G',seq(cyc).join('–')]],note:`G has the Hamiltonian cycle ${seq(cyc).join('–')}.`,line:[4]});
+      F.push({board:drawDHC(G,pos,true,cyc),chips:[['directed cycle',seq(cyc).join(' → ')]],note:`(⇒) Walk it in one direction: ${seq(cyc).join(' → ')}. Each step is an arc of D, so D has a directed Hamiltonian cycle. (⇐) Reading those arcs back as edges gives the cycle in G.`,line:[4,5]});
+      F.push({board:drawDHC(G,pos,true,cyc),chips:[['HC(G)',yn(true),true],['Directed HC(D)',yn(true),true]],note:`Both answers are Yes.`,line:[6]});
+    }else{
+      let f=1;for(let i=2;i<n;i++)f*=i;
+      F.push({board:drawDHC(G,pos,true,null),chips:[['orderings checked',f]],note:`G has no Hamiltonian cycle (all ${f} orderings fail). A directed one in D would give one in G by (⇐), so D has none either.`,line:[5]});
+      F.push({board:drawDHC(G,pos,true,null),chips:[['HC(G)',yn(false),true],['Directed HC(D)',yn(false),true]],note:`Both answers are No.`,line:[6]});
+    }
+    return F;
+  }
+};
+
+/* ---------- 8. 3SAT -> VC (reuses the SAT -> VC drawing) ---------- */
+const modVC3={
+  presets:[
+    {l:'(x ∨ y ∨ z) ∧ (¬x ∨ ¬y ∨ z)',inst:{text:'(x | y | z) & (~x | ~y | z)'}},
+    {l:'One clause',inst:{text:'(x | ~y | z)'}},
+    {l:'Three clauses',inst:{text:'(x | y | ~z) & (~x | y | z) & (x | ~y | ~z)'}}],
+  inputHtml:modVC.inputHtml,read:modVC.read,write:modVC.write,
+  steps:[
+    `Variable edges: for each variable xi, make vertices xi and ¬xi and join them.`,
+    `Clause triangles: for each clause, make 3 vertices cj,l and join all three.`,
+    `Connections: join each clause vertex cj,l to the variable vertex l.`,
+    `k = n + 2m: 1 per variable edge, 2 per triangle.`,
+    `(⇒) Cover each true literal, and in each triangle leave out one true-literal vertex.`,
+    `(⇐) Set a literal true when its variable vertex is in the cover.`],
+  legend:[['k-amber','In the cover'],['k-ring-green','Left out (true literal)'],['k-line-blue','Variable edge'],['k-line-violet','Clause triangle'],['k-dash','Connection']],
+  gen(inst){
+    const cnf=parseCNF(inst.text,{maxC:3,maxL:3,maxV:3});
+    if(cnf.some(c=>c.length!==3))throw new Error('3SAT needs exactly 3 literals in every clause.');
+    const n=varsOf(cnf).length,m=cnf.length;
+    return modVC.gen(inst).map(f=>({...f,note:f.note
+      .replace(/a clique on 3 new vertices\. A clique of size 3 needs at least 2 cover vertices\./,'a triangle on 3 new vertices. A triangle needs at least 2 of its 3 vertices in any cover.')
+      .replace(/k = n \+ Σ\(\|c\| − 1\) = [^.]*\./,`k = n + 2m = ${n} + 2·${m} = ${n+2*m}.`)
+      .replace(/In each clique one vertex is out/,'In each triangle one vertex is out')}));
+  }
+};
+
+/* ---------- 9. 3SAT -> 3Color ---------- */
+function col3Model(cnf){
+  const vs=varsOf(cnf),V=[],E=[];
+  const add=(label,kind,extra)=>{V.push({label,kind,...extra});return V.length-1;};
+  const T=add('T','pal'),Fv=add('F','pal'),B=add('B','pal');
+  E.push([T,Fv,'pal'],[Fv,B,'pal'],[T,B,'pal']);
+  const lit={};
+  vs.forEach(v=>{
+    const a=add(v,'lit',{lit:v}),b=add('¬'+v,'lit',{lit:'~'+v});lit[v]=a;lit['~'+v]=b;
+    E.push([a,b,'var'],[a,B,'base'],[b,B,'base']);
+  });
+  const cl=[];
+  cnf.forEach((c,i)=>{
+    const gad=(ia,ib,k)=>{
+      const p=add('p'+k,'gad',{cl:i}),q=add('q'+k,'gad',{cl:i}),r=add('r'+k,'gad',{cl:i});
+      E.push([p,ia,'in'],[q,ib,'in'],[p,q,'tri'],[q,r,'tri'],[p,r,'tri']);
+      return {p,q,r};
+    };
+    const g1=gad(lit[c[0]],lit[c[1]],1),g2=gad(g1.r,lit[c[2]],2);
+    E.push([g2.r,Fv,'force'],[g2.r,B,'force']);
+    cl.push({g1,g2});
+  });
+  return {vs,V,E,T,F:Fv,B,lit,cl,cnf,n:vs.length,m:cnf.length};
+}
+/* colors for an OR gadget whose inputs are colored T or F (the rules in the notes) */
+const orCol=(a,b)=>a==='F'&&b==='F'?{p:'T',q:'B',r:'F'}:a==='T'&&b==='F'?{p:'F',q:'B',r:'T'}:a==='F'&&b==='T'?{p:'B',q:'F',r:'T'}:{p:'F',q:'B',r:'T'};
+function col3Color(M,valOf,only){
+  const col={};col[M.T]='T';col[M.F]='F';col[M.B]='B';
+  M.vs.forEach(v=>{const t=valOf(v);if(t===undefined)return;col[M.lit[v]]=t?'T':'F';col[M.lit['~'+v]]=t?'F':'T';});
+  M.cnf.forEach((c,i)=>{
+    if(only!==undefined&&i!==only)return;
+    const a=col[M.lit[c[0]]],b=col[M.lit[c[1]]],cc=col[M.lit[c[2]]];
+    const o1=orCol(a,b),o2=orCol(o1.r,cc);
+    const {g1,g2}=M.cl[i];
+    col[g1.p]=o1.p;col[g1.q]=o1.q;col[g1.r]=o1.r;col[g2.p]=o2.p;col[g2.q]=o2.q;col[g2.r]=o2.r;
+  });
+  return col;
+}
+const colValid=(M,col)=>M.E.every(([a,b])=>col[a]&&col[b]&&col[a]!==col[b]);
+function col3Search(M){
+  const N=M.V.length,adj=Array.from({length:N},()=>[]);M.E.forEach(([a,b])=>{adj[a].push(b);adj[b].push(a);});
+  const col=Array(N).fill(null);const C=['T','F','B'];
+  col[M.T]='T';col[M.F]='F';col[M.B]='B';
+  const order=[...Array(N).keys()].filter(i=>col[i]===null);
+  return (function go(k){
+    if(k===order.length)return true;
+    const v=order[k];
+    for(const c of C){if(adj[v].every(u=>col[u]!==c)){col[v]=c;if(go(k+1))return true;col[v]=null;}}
+    return false;
+  })(0);
+}
+function col3Layout(M){
+  const W=Math.max(600,90+M.m*260),H=480;
+  const pos=[];const cx=W/2;
+  pos[M.T]={x:cx-80,y:36};pos[M.F]={x:cx+80,y:36};pos[M.B]={x:cx,y:96};
+  M.vs.forEach((v,i)=>{const x=W*(i+.5)/M.n;pos[M.lit[v]]={x:x-30,y:178};pos[M.lit['~'+v]]={x:x+30,y:178};});
+  M.cl.forEach(({g1,g2},i)=>{
+    const X=W*(i+.5)/M.m;
+    pos[g1.p]={x:X-90,y:262};pos[g1.q]={x:X-30,y:262};pos[g1.r]={x:X-60,y:318};
+    pos[g2.p]={x:X,y:372};pos[g2.q]={x:X+60,y:372};pos[g2.r]={x:X+30,y:428};
+  });
+  return {W,H,pos};
+}
+const COLCLS={T:'solid h-green',F:'solid h-rose',B:'solid h-blue'};
+function drawCol3(M,o){
+  o=o||{};
+  const {W,H,pos}=col3Layout(M);
+  const col=o.col||{};const shownCl=o.cl===undefined?M.m:o.cl;const lits=o.lits!==false;
+  const vis=i=>{const v=M.V[i];return v.kind==='pal'||(v.kind==='lit'&&lits)||(v.kind==='gad'&&v.cl<shownCl);};
+  const dimN=i=>o.dimOther!==undefined&&M.V[i].kind==='gad'&&M.V[i].cl!==o.dimOther;
+  let s='',gl='',gn='';
+  M.E.forEach(([a,b,t])=>{
+    if(!vis(a)||!vis(b))return;
+    const clash=col[a]&&col[a]===col[b];
+    const dim=dimN(a)||dimN(b);
+    if(t==='force'){
+      // draw to a small copy of F / B next to r2
+      const r=pos[a],isF=b===M.F,g={x:r.x+68,y:r.y+(isF?-18:18)};
+      gl+=sLine(r,g,'te dash'+(clash?' h-rose thick clash':'')+(dim?' dim':''));
+      gn+=sNode(g,isF?'F':'B',(COLCLS[isF?'F':'B'])+' ghost'+(dim?' dim':''),11);
+      return;
+    }
+    let cls=t==='base'?'te':t==='tri'?'te h-violet':t==='in'?'te on':'te on';
+    if(clash)cls='te thick h-rose clash';
+    s+=sLine(pos[a],pos[b],cls+(dim?' dim':''));
+  });
+  s+=gl;
+  M.V.forEach((v,i)=>{
+    if(!vis(i))return;
+    let cls=col[i]?COLCLS[col[i]]:(v.kind==='gad'?'h-violet':'');
+    if(o.fresh!==undefined&&v.kind==='gad'&&v.cl===o.fresh)cls+=' cur';
+    if(dimN(i))cls+=' dim';
+    s+=sNode(pos[i],v.label,cls,v.kind==='pal'?20:17);
+  });
+  for(let i=0;i<shownCl;i++)s+=sText(W*(i+.5)/M.m,H-6,'CLAUSE '+(i+1)+': '+fc(M.cnf[i]),'lab-h h-violet');
+  return svgW(W,H,s+gn,'3-coloring graph built from the formula');
+}
+const modCol3={
+  presets:[
+    {l:'(x ∨ y ∨ z)',inst:{text:'(x | y | z)'}},
+    {l:'(x ∨ ¬y ∨ z) ∧ (¬x ∨ y ∨ ¬z)',inst:{text:'(x | ~y | z) & (~x | y | ~z)'}},
+    {l:'(x ∨ x ∨ x) ∧ (¬x ∨ ¬x ∨ ¬x) (No)',inst:{text:'(x | x | x) & (~x | ~x | ~x)'}}],
+  inputHtml:`<label class="lab">Formula <input class="in" data-i="text" style="width:min(340px,60vw)" spellcheck="false" aria-label="3CNF formula"></label>`,
+  read:h=>({text:h.querySelector('[data-i=text]').value}),
+  write:(h,i)=>{h.querySelector('[data-i=text]').value=i.text;},
+  steps:[
+    `Palette triangle T, F, B: three different colors, named after their vertex.`,
+    `Variable gadget: xi – ¬xi, and both joined to B.`,
+    `OR gadget (a, b → r): p – a, q – b, triangle p – q – r.`,
+    `Clause (a ∨ b ∨ c): r1 = OR(a, b), r2 = OR(r1, c); join r2 to F and B.`,
+    `(⇒) Color literals by the assignment, then each OR gadget by the rules.`,
+    `(⇐) All three literals F forces r2 = F, which clashes with the F vertex.`],
+  legend:[['k-green','T (true)'],['k-rose','F (false)'],['k-blue','B (base)'],['k-ring-violet','OR gadget vertex, not yet colored'],['','Small F / B: the palette vertices, redrawn next to r2']],
+  gen(inst){
+    const cnf=parseCNF(inst.text,{maxC:2,maxL:3,maxV:3});
+    if(cnf.some(c=>c.length!==3))throw new Error('3SAT needs exactly 3 literals in every clause.');
+    const M=col3Model(cnf);const F=[];
+    const pal={};pal[M.T]='T';pal[M.F]='F';pal[M.B]='B';
+    F.push({board:drawCol3(M,{lits:false,cl:0,col:pal}),chips:[['colors',3,true]],note:`Palette triangle T, F, B. Its vertices need three different colors, so name each color after its vertex: True, False, Base.`,line:[1]});
+    F.push({board:drawCol3(M,{cl:0,col:pal}),chips:[['n variables',M.n],['literal vertices',2*M.n]],note:`Variable gadgets: xi – ¬xi, and both joined to B. Each literal must avoid B, so it is T or F, and xi, ¬xi get opposite colors.`,line:[2]});
+    cnf.forEach((c,i)=>F.push({board:drawCol3(M,{cl:i+1,col:pal,fresh:i}),chips:[['clause',(i+1)+' of '+M.m],['new vertices',6]],note:`Clause ${fc(c)}: r1 = OR(${fl(c[0])}, ${fl(c[1])}), then r2 = OR(r1, ${fl(c[2])}). r2 is joined to F and B, so r2 must be T.`,line:[3,4]}));
+    F.push({board:drawCol3(M,{col:pal}),chips:[['vertices',`${M.V.length} = 3 + 2·${M.n} + 6·${M.m}`],['edges',`${M.E.length} = 3 + 3·${M.n} + 12·${M.m}`]],note:`The whole graph has linear size, so the reduction is polynomial.`,line:[4]});
+    const a=solveSat(cnf);
+    if(a){
+      const col=col3Color(M,v=>a[v]);const ok=colValid(M,col);
+      F.push({board:drawCol3(M,{col}),chips:[['assignment',showAssign(M.vs,a)],['valid coloring',yn(ok),true]],note:`(⇒) ${showAssign(M.vs,a)} satisfies f. Color each literal T or F by its value, then each OR gadget by the rules. Every r2 comes out T, and ${ok?'no edge joins two vertices of the same color':'some edge clashes (check failed)'}.`,line:[5]});
+    }
+    const c0=cnf[0];
+    if(!c0.some(l=>c0.includes(NEG(l)))){
+      const forced={};c0.forEach(l=>{forced[VARN(l)]=l[0]==='~';});
+      const col=col3Color(M,v=>v in forced?forced[v]:(a?a[v]:undefined),0);
+      F.push({board:drawCol3(M,{col,dimOther:0}),chips:[['clause 1',fc(c0)],['r2','forced F']],note:`(⇐) Suppose every literal of ${fc(c0)} is F. Then r1 is forced to F, so r2 = OR(F, F) is forced to F. But r2 is joined to F: the red edge is a clash. So in a valid coloring every clause has a T literal.`,line:[6]});
+    }
+    const colorable=a?true:col3Search(M);
+    F.push({board:a?drawCol3(M,{col:col3Color(M,v=>a[v])}):drawCol3(M,{col:pal}),chips:[['3SAT',yn(!!a),true],['3Color',yn(colorable),true]],note:a?`Both answers are Yes.`:`f is unsatisfiable, and a search over colorings finds no valid 3-coloring of G either. Both answers are No.`,line:[6]});
+    return F;
+  }
+};
+
+REDVIZ.dhc=modDHC;REDVIZ.vc3=modVC3;REDVIZ.col3=modCol3;
+
 /* ---------- rendering (same building blocks as index.html) ---------- */
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
@@ -1833,11 +2158,11 @@ function cardHtml(c,group){
 }
 function secHead(id,title,sub){return `<div class="sec-head" id="${id}"><h2 class="text-fluid-md">${title}</h2>${sub?`<p>${sub}</p>`:''}</div>`;}
 
-const pHtml=a=>a.map(t=>typeof t==='object'&&t.nt?`<div class="nt"><b>${esc(t.nt)}</b><span>${esc(t.b)}</span></div>`:`<p>${esc(t)}</p>`).join('');
+const pHtml=a=>a.map(t=>typeof t!=='object'?`<p>${esc(t)}</p>`:t.nt?`<div class="nt"><b>${esc(t.nt)}</b><span>${esc(t.b)}</span></div>`:t.h?`<h4>${esc(t.h)}</h4>`:t.ul?`<ul class="mcase-list">${t.ul.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'').join('');
 function redCard(r){
   const head=`<div class="card-header"><div><div class="project-type">${esc(r.tag)}</div><h3 class="card-title">${esc(r.name)}</h3><p class="card-subtitle">${esc(r.tagline)}</p></div><div class="io mono"><div><b>From</b>${esc(r.from)}</div><div><b>To</b>${esc(r.to)}</div></div></div>`;
-  const left=`<h4>Problem</h4>${pHtml(r.problem)}${r.lemma?`<h4>Lemma</h4>${pHtml(r.lemma)}`:''}<h4>Construction</h4>${r.cintro?`<p>${esc(r.cintro)}</p>`:''}<ol class="mcase-list">${r.construction.map(t=>`<li>${esc(t)}</li>`).join('')}</ol><h4>Value of k</h4>${pHtml(r.k)}`;
-  const right=`<h4>In NP</h4>${pHtml(r.inNP)}<h4>(⇒)</h4>${pHtml(r.fwd)}<h4>(⇐)</h4>${pHtml(r.bwd)}<h4>Time</h4>${pHtml(r.time)}<h4>Example</h4>${pHtml(r.example)}`;
+  const left=`<h4>Problem</h4>${pHtml(r.problem)}${r.idea?`<h4>Idea</h4>${pHtml(r.idea)}`:''}${r.lemma?`<h4>Lemma</h4>${pHtml(r.lemma)}`:''}<h4>Construction</h4>${r.cintro?`<p>${esc(r.cintro)}</p>`:''}<ol class="mcase-list">${r.construction.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>${r.after?pHtml(r.after):''}<h4>Value of k</h4>${pHtml(r.k)}`;
+  const right=`<h4>In NP</h4>${pHtml(r.inNP)}<h4>(⇒)</h4>${pHtml(r.fwd)}<h4>(⇐)</h4>${pHtml(r.bwd)}<h4>Time</h4>${pHtml(r.time)}<h4>Example</h4>${pHtml(r.example)}${r.note?pHtml(r.note):''}`;
   return `<article class="glass-layer-strong algo" id="${r.id}">${head}
     <div class="viz" data-viz="${r.viz}"></div>
     <div class="algo-text"><div>${left}</div><div>${right}</div></div></article>`;
@@ -1856,13 +2181,14 @@ const SECS=[
  {id:'np-basics',nav:'P &amp; NP',h:'Decision Problems, P and NP',sub:'Decision vs. optimization, polynomial time, P and NP.'},
  {id:'np-complete',nav:'NP-complete',h:'NP-Complete Problems',sub:'Reductions, the reduction map and the core NP-complete problems.'},
  {id:'co-np',nav:'Co-NP',h:'Co-NP',sub:'More NP-complete problems, complements, Co-NP and NP-intermediate.'},
- {id:'reductions',nav:'Reductions',h:'Six Reductions, Step by Step',sub:'NP-Completeness Study Guide by Ahmed Abualrob, KFUPM ICS 553, 10/15/2026. Each has a live visualizer: pick a preset or type your own instance.'}];
+ {id:'reductions',nav:'Reductions',h:'Reductions, Step by Step',sub:'NP-Completeness Study Guide by Ahmed Abualrob, KFUPM ICS 553, 10/15/2026. Each has a live visualizer: pick a preset or type your own instance.'}];
 
+function labelTables(){document.querySelectorAll('table').forEach(t=>{const h=[...t.querySelectorAll('thead th')].map(x=>x.textContent.trim());t.querySelectorAll('tbody tr').forEach(r=>[...r.children].forEach((td,i)=>{td.dataset.label=h[i]||'';}));});}
 function renderPage(){
   let h='';
   SECS.forEach(S=>{
     const inner=S.id==='reductions'
-      ?glossaryCard()+RED.map(redCard).join('')+`<div class="nt prof-intro"><b>Which reductions to study</b><span>${esc(HOMEWORK_INTRO)}</span></div>`+HOMEWORK.map(hwCard).join('')
+      ?glossaryCard()+RED.map(redCard).join('')+`<div class="nt prof-intro"><b>Which reductions to study</b><span>${esc(HOMEWORK_INTRO)}</span></div>`+HWRED.map(redCard).join('')+HOMEWORK.map(hwCard).join('')
       :TOPICS.filter(t=>t.sec===S.id).map(t=>cardHtml(t,t.group)).join('');
     h+=`<section class="section" id="${S.id}">${secHead(S.id+'-h',S.h,S.sub)}${inner}</section>`;
   });
@@ -1876,7 +2202,7 @@ function renderPage(){
   });
 
   const nav=document.getElementById('index');
-  nav.innerHTML=`<a href="index.html#foundations-h">Basics</a><a href="index.html#searching">Searching</a><a href="index.html#sorting">Sorting</a><a href="index.html#cheat-h">Cheat sheet</a><a href="index.html#complexity-h">Complexity</a><a href="index.html#recursion-h">Recursion</a><span class="sep"></span>`+SECS.map(S=>`<a href="#${S.id}-h" data-t="${S.id}">${S.nav}</a>`).join('')+`<span class="sep"></span>`+RED.map(r=>`<a href="#${r.id}" data-t="${r.id}">${r.name}</a>`).join('')+`<button type="button" id="theme"></button>`;
+  nav.innerHTML=`<a href="index.html#foundations-h">Basics</a><a href="index.html#searching">Searching</a><a href="index.html#sorting">Sorting</a><a href="index.html#cheat-h">Cheat sheet</a><a href="index.html#complexity-h">Complexity</a><a href="index.html#recursion-h">Recursion</a><span class="sep"></span>`+SECS.map(S=>`<a href="#${S.id}-h" data-t="${S.id}">${S.nav}</a>`).join('')+`<span class="sep"></span>`+[...RED,...HWRED].map(r=>`<a href="#${r.id}" data-t="${r.id}">${r.name}</a>`).join('')+`<button type="button" id="theme"></button>`;
   const root=document.documentElement;
   const isDark=()=>root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
   const SUN='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -1888,7 +2214,7 @@ function renderPage(){
   setIcon();
 
   const links=[...nav.querySelectorAll('a[data-t]')];
-  const targets=[...SECS.map(S=>document.getElementById(S.id)),...RED.map(r=>document.getElementById(r.id))];
+  const targets=[...SECS.map(S=>document.getElementById(S.id)),...[...RED,...HWRED].map(r=>document.getElementById(r.id))];
   if('IntersectionObserver' in window){
     const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const id=e.target.id;links.forEach(l=>l.classList.toggle('on',l.dataset.t===id));const on=links.find(l=>l.dataset.t===id);if(on)nav.scrollLeft=on.offsetLeft-nav.clientWidth/2+on.offsetWidth/2;}});},{rootMargin:'-35% 0px -60% 0px'});
     targets.forEach(t=>t&&io.observe(t));
@@ -1916,7 +2242,7 @@ function initEffects(){
   }else{reveals.forEach(el=>el.classList.add('visible'));}
 }
 
-renderPage();initEffects();
+renderPage();labelTables();initEffects();
 </script>
 </body>
 </html>
