@@ -491,6 +491,9 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .cells{width:100%;justify-content:center}
 .cell{flex:1 1 0;min-width:20px;max-width:42px}
 
+.tp-link{display:inline-flex;align-items:center;gap:6px;margin-top:18px;font:500 13px 'JetBrains Mono',monospace;color:var(--ink);text-decoration:none;padding:9px 16px;border-radius:999px;border:1px solid var(--gb-strong);background:var(--glass-strong);transition:background .2s,color .2s}
+.tp-link:hover{background:var(--ink);color:var(--inv)}
+
 /* ---------- diagrams: shared palette + node/edge styles ---------- */
 :root{
   --d-blue:#2563EB;--d-green:#059669;--d-amber:#D97706;--d-rose:#E11D48;--d-violet:#7C3AED;--d-teal:#0891B2;
@@ -620,6 +623,11 @@ svg.dg{overflow:visible}
 .sw.k-ring-violet{background:color-mix(in srgb,var(--d-violet) 18%,transparent);border:2.5px solid var(--d-violet)}
 .dg .tn.vis.cur text,.dg .tn.cur text{fill:var(--d-text)}
 [data-viz="vcis"] .dg .tn.cur text{fill:var(--d-on)}
+
+[data-viz="cliqueis"]{--vis-h:var(--d-violet);--hot-h:var(--d-violet)}
+[data-viz="cliqueis"] .dg .tn.cur circle{fill:var(--d-teal);stroke:var(--d-teal);stroke-width:1.8}
+[data-viz="cliqueis"] .dg .tn.cur text{fill:var(--d-on)}
+.sw.k-line-amber{background:var(--d-amber);border-color:var(--d-amber);height:4px;border-radius:2px}
 </style>
 </head>
 <body>
@@ -635,6 +643,7 @@ svg.dg{overflow:visible}
         <a href="#graph-review">Start reading</a>
         <a href="#reductions">Jump to the reductions</a>
         <a href="#np-complete">Reduction map</a>
+        <a href="ProofTemplate.html">Proof template</a>
         <a href="index.html">Back to Algorithms</a>
       </div>
     </div>
@@ -644,7 +653,7 @@ svg.dg{overflow:visible}
 
   <main id="app"></main>
 
-  <div style="text-align:center;padding:48px 24px 0"><a href="index.html" class="btn cross-link" style="font-size:1rem;padding:14px 32px;border-radius:999px;text-decoration:none;display:inline-block">&larr; Back to Algorithms</a></div>
+  <div style="text-align:center;padding:48px 24px 0;display:flex;gap:12px;justify-content:center;flex-wrap:wrap"><a href="index.html" class="btn" style="font-size:1rem;padding:14px 32px;border-radius:999px;text-decoration:none;display:inline-block">&larr; Back to Algorithms</a><a href="ProofTemplate.html" class="btn cross-link" style="font-size:1rem;padding:14px 32px;border-radius:999px;text-decoration:none;display:inline-block">Proof template &rarr;</a></div>
 
   <footer class="footer">
     <p class="footer-text">KFUPM ICS 553 notes by Ahmed Abualrob</p>  </footer>
@@ -958,8 +967,7 @@ const RED=[
 ];
 
 const HOMEWORK_INTRO=`The six above are the main reductions from the professor's notes. The rest are homework, and just as important. The two sets of notes disagree on which: the lecture notes list Clique → IS, 3SAT → VC and HC → Directed HC; the study guide lists HC → Directed HC, 3SAT → VC and 3SAT → 3Color. All four are below. Confirm which set was actually assigned.`;
-const HOMEWORK=[
- [`Reduction 10`,`Clique → IS`]];
+const HOMEWORK=[];
 
 /* ---------- homework reductions with full notes ---------- */
 const HWRED=[
@@ -1001,7 +1009,20 @@ const HWRED=[
  fwd:[`Take a satisfying assignment. Color the palette with T, F, B. Color each literal vertex T if it is true and F if it is false. The variable gadgets are valid.`,`In each clause (a ∨ b ∨ c): if a or b is true, color r1 = T, using the facts above. Then OR(r1 = T, c) can output r2 = T. If only c is true, then a = b = F, so r1 = F. Then OR(F, c = T) can output r2 = T.`,`r2 = T differs from F and B, so the coloring is valid.`],
  bwd:[`Take a valid 3-coloring and name the colors after the palette vertices.`,`Each literal vertex is next to B, so it is colored T or F. Also, xi and ¬xi differ. Set xi true if it is colored T. This is consistent.`,`Suppose some clause has a = b = c = F. Then r1 is forced to F, and so r2 = OR(F, F) is forced to F. But r2 is joined to F, which is a contradiction. So every clause has a true literal.`],
  time:[`3 + 2n + 6m vertices and 3 + 3n + 12m edges, which is linear.`],
- example:[`(x ∨ y ∨ z). Take x = F, y = F, z = T. Literals: x = F, ¬x = T, y = F, ¬y = T, z = T, ¬z = F.`,`First OR (x, y both F): p1 = T, q1 = B, r1 = F. Check: p1 – x is T/F, and q1 – y is B/F.`,`Second OR (r1 = F, z = T): p2 = B, q2 = F, r2 = T. Check: p2 – r1 is B/F, q2 – z is F/T, r2 – F is T/F, and r2 – B is T/B.`,`All edges are valid, so the answer is Yes.`,`Now try x = y = z = F. r1 is forced to F, so r2 is forced to F, which clashes with the edge r2 – F. So no coloring extends this assignment, which is exactly what the (⇐) proof says.`]}];
+ example:[`(x ∨ y ∨ z). Take x = F, y = F, z = T. Literals: x = F, ¬x = T, y = F, ¬y = T, z = T, ¬z = F.`,`First OR (x, y both F): p1 = T, q1 = B, r1 = F. Check: p1 – x is T/F, and q1 – y is B/F.`,`Second OR (r1 = F, z = T): p2 = B, q2 = F, r2 = T. Check: p2 – r1 is B/F, q2 – z is F/T, r2 – F is T/F, and r2 – B is T/B.`,`All edges are valid, so the answer is Yes.`,`Now try x = y = z = F. r1 is forced to F, so r2 is forced to F, which clashes with the edge r2 – F. So no coloring extends this assignment, which is exactly what the (⇐) proof says.`]},
+
+{id:'red-cliqueis',viz:'cliqueis',tag:`Reduction 10 · homework`,name:`Clique → IS`,tagline:`Complement the graph: a clique in G is an independent set in Ḡ.`,
+ from:`Graph G and k`,to:`Complement graph Ḡ and the same k`,
+ problem:[`Clique asks whether G has k vertices that are all joined to each other. IS asks whether a graph has k vertices with no edge between any two of them.`],
+ idea:[`A clique and an independent set are opposites: one has every edge among its vertices, the other has none. Flipping every edge turns one into the other.`],
+ construction:[`Keep the same vertex set V.`,`Build the complement Ḡ = (V, Ē): for every pair u ≠ v, join u and v in Ḡ exactly when they are not joined in G.`,`Keep the same k.`],
+ k:[`k stays the same: a clique of size k in G is an independent set of size k in Ḡ.`],
+ inNP:[`The witness is a set of k vertices. Check that no pair of them is joined in Ḡ: O(k²) pairs.`],
+ fwd:[`Take a clique S of size k in G. Every pair in S is joined in G, so no pair in S is joined in Ḡ. So S is an independent set of size k in Ḡ.`],
+ bwd:[`Take any independent set S of size k in Ḡ. No pair in S is joined in Ḡ, so every pair in S is joined in G. So S is a clique of size k in G.`],
+ time:[`Ḡ has |V| vertices and |V|(|V| − 1)/2 − |E| edges. Building it checks each of the O(|V|²) pairs once.`],
+ example:[`G has V = {a, b, c, d, e} and edges a–b, a–c, b–c, c–d, d–e. Ḡ has the other 5 pairs: a–d, a–e, b–d, b–e, c–e.`,`With k = 3: {a, b, c} is a clique in G, and Ḡ has no edge among a, b, c, so it is an independent set of size 3. Both answers are Yes.`,`With k = 4: the largest clique of G has size 3, so the answer is No, and Ḡ has no independent set of size 4 either.`],
+ note:[{nt:`The other direction`,b:`IS → Clique is the same construction, since complementing Ḡ gives back G. Combined with VC ↔ IS, this links Clique, IS and VC: each reduces to the others.`}]}];
 
 
 /* =====================================================================
@@ -2128,7 +2149,64 @@ const modCol3={
   }
 };
 
-REDVIZ.dhc=modDHC;REDVIZ.vc3=modVC3;REDVIZ.col3=modCol3;
+/* ---------- 10. Clique -> IS ---------- */
+function drawCIS(G,pos,cE,o){
+  o=o||{};
+  const S=o.S||0,inS=i=>!!(S>>i&1);
+  const left=()=>{
+    let s='';
+    if(o.showG!==false)G.E.forEach(([a,b])=>{s+=sLine(pos[a],pos[b],S&&o.hotG?(inS(a)&&inS(b)?'te hot':'te dim'):'te on');});
+    pos.forEach((p,i)=>{s+=sNode(p,G.V[i],S&&o.hotG?(inS(i)?'vis':'dim'):'',17);});
+    return s;
+  };
+  const right=()=>{
+    let s='';
+    cE.forEach(([a,b])=>{s+=sLine(pos[a],pos[b],'te h-amber');});
+    pos.forEach((p,i)=>{s+=sNode(p,G.V[i],S&&o.hotC&&inS(i)?'cur':'',17);});
+    return s;
+  };
+  if(!o.comp)return svgW(300,260,left()+sText(150,252,'G'),'Graph G');
+  return svgW(620,260,`<g>${left()}</g><g transform="translate(320,0)">${right()}</g>${sText(150,252,'G')}${sText(470,252,'COMPLEMENT Ḡ','lab-h h-amber')}`,'G and its complement');
+}
+const modCliqueIS={
+  presets:[
+    {l:'Notes example, k = 3',inst:{k:3,text:'a-b, a-c, b-c, c-d, d-e'}},
+    {l:'Same graph, k = 4 (No)',inst:{k:4,text:'a-b, a-c, b-c, c-d, d-e'}},
+    {l:'Square + diagonal, k = 3',inst:{k:3,text:'1-2, 2-3, 3-4, 4-1, 1-3'}},
+    {l:'Pentagon, k = 3 (No)',inst:{k:3,text:'1-2, 2-3, 3-4, 4-5, 5-1'}}],
+  inputHtml:`<label class="lab">k <input class="in x" type="number" min="1" data-i="k" aria-label="Clique size k"></label>
+    <label class="lab">Edges <input class="in" data-i="text" style="width:min(280px,52vw)" spellcheck="false" aria-label="Edges of G"></label>`,
+  read:h=>({k:parseInt(h.querySelector('[data-i=k]').value,10),text:h.querySelector('[data-i=text]').value}),
+  write:(h,i)=>{h.querySelector('[data-i=k]').value=i.k;h.querySelector('[data-i=text]').value=i.text;},
+  steps:[
+    `Keep the same vertex set V.`,
+    `Complement: join u, v in Ḡ exactly when they are not joined in G.`,
+    `Keep the same k.`,
+    `(⇒) A clique S in G has every pair joined, so no pair in Ḡ: S is independent in Ḡ.`,
+    `(⇐) An independent S in Ḡ has no pair joined, so every pair in G: S is a clique in G.`,
+    `Clique(G, k) = Yes ⇔ IS(Ḡ, k) = Yes.`],
+  legend:[['k-violet','In the clique (G)'],['k-teal','Independent set (Ḡ)'],['k-line','Edge of G'],['k-line-amber','Edge of Ḡ']],
+  gen(inst){
+    const G=parseEdges(inst.text,8);const n=G.V.length;
+    if(!Number.isInteger(inst.k)||inst.k<1||inst.k>n)throw new Error('k must be a whole number from 1 to '+n+'.');
+    const k=inst.k,A=adjMat(n,G.E),cE=[];
+    for(let a=0;a<n;a++)for(let b=a+1;b<n;b++)if(!A[a][b])cE.push([a,b]);
+    const pos=circ(n,150,122,88);
+    const cl=maxClique(n,A),w=cl.size;
+    const names=m=>'{'+maskList(m,n).map(i=>G.V[i]).join(', ')+'}';
+    const pairs=n*(n-1)/2;
+    const F=[];
+    F.push({board:drawCIS(G,pos,cE,{}),chips:[['|V|',n],['|E|',G.E.length],['k',k]],note:`Instance: Clique(G, ${k}). Are there ${k} vertices that are all joined to each other?`,line:[1]});
+    F.push({board:drawCIS(G,pos,cE,{comp:true}),chips:[['pairs',pairs],['edges in G',G.E.length],['edges in Ḡ',cE.length]],note:`Complement the graph: of the ${pairs} pairs, the ${G.E.length} joined in G are left out and the other ${cE.length} become the edges of Ḡ (amber).`,line:[1,2]});
+    F.push({board:drawCIS(G,pos,cE,{comp:true}),chips:[['k',k,true]],note:`Keep k = ${k}. The new instance is IS(Ḡ, ${k}). Building Ḡ checks each pair once: O(|V|²).`,line:[3]});
+    F.push({board:drawCIS(G,pos,cE,{comp:true,S:cl.mask,hotG:true}),chips:[['largest clique',names(cl.mask)],['size',w]],note:`A largest clique of G is ${names(cl.mask)} (size ${w}): every pair is joined in G (violet).`,line:[4]});
+    F.push({board:drawCIS(G,pos,cE,{comp:true,S:cl.mask,hotG:true,hotC:true}),chips:[['independent in Ḡ',names(cl.mask)],['size',w]],note:`(⇒) The same vertices in Ḡ (teal): no amber edge joins two of them, so they form an independent set of size ${w}. (⇐) Reading any independent set of Ḡ back in G gives a clique the same way.`,line:[4,5]});
+    F.push({board:drawCIS(G,pos,cE,{comp:true,S:w>=k?cl.mask:0,hotG:w>=k,hotC:w>=k}),chips:[['Clique(G, '+k+')',yn(w>=k),true],['IS(Ḡ, '+k+')',yn(w>=k),true]],note:w>=k?`Both answers are Yes: G has a clique of size ${w} ≥ ${k}.`:`Both answers are No: the largest clique of G has size ${w} < ${k}, so Ḡ has no independent set of size ${k} either.`,line:[6]});
+    return F;
+  }
+};
+
+REDVIZ.dhc=modDHC;REDVIZ.vc3=modVC3;REDVIZ.col3=modCol3;REDVIZ.cliqueis=modCliqueIS;
 
 /* ---------- rendering (same building blocks as index.html) ---------- */
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -2159,10 +2237,11 @@ function cardHtml(c,group){
 function secHead(id,title,sub){return `<div class="sec-head" id="${id}"><h2 class="text-fluid-md">${title}</h2>${sub?`<p>${sub}</p>`:''}</div>`;}
 
 const pHtml=a=>a.map(t=>typeof t!=='object'?`<p>${esc(t)}</p>`:t.nt?`<div class="nt"><b>${esc(t.nt)}</b><span>${esc(t.b)}</span></div>`:t.h?`<h4>${esc(t.h)}</h4>`:t.ul?`<ul class="mcase-list">${t.ul.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'').join('');
+const TPLID={'red-circuit':'circuit','red-3sat':'sat3','red-hc':'hc','red-clique':'clique','red-vcis':'vcis','red-vc':'vc','red-dhc':'dhc','red-vc3':'vc3','red-3col':'col3','red-cliqueis':'cliqueis'};
 function redCard(r){
   const head=`<div class="card-header"><div><div class="project-type">${esc(r.tag)}</div><h3 class="card-title">${esc(r.name)}</h3><p class="card-subtitle">${esc(r.tagline)}</p></div><div class="io mono"><div><b>From</b>${esc(r.from)}</div><div><b>To</b>${esc(r.to)}</div></div></div>`;
   const left=`<h4>Problem</h4>${pHtml(r.problem)}${r.idea?`<h4>Idea</h4>${pHtml(r.idea)}`:''}${r.lemma?`<h4>Lemma</h4>${pHtml(r.lemma)}`:''}<h4>Construction</h4>${r.cintro?`<p>${esc(r.cintro)}</p>`:''}<ol class="mcase-list">${r.construction.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>${r.after?pHtml(r.after):''}<h4>Value of k</h4>${pHtml(r.k)}`;
-  const right=`<h4>In NP</h4>${pHtml(r.inNP)}<h4>(⇒)</h4>${pHtml(r.fwd)}<h4>(⇐)</h4>${pHtml(r.bwd)}<h4>Time</h4>${pHtml(r.time)}<h4>Example</h4>${pHtml(r.example)}${r.note?pHtml(r.note):''}`;
+  const right=`<h4>In NP</h4>${pHtml(r.inNP)}<h4>(⇒)</h4>${pHtml(r.fwd)}<h4>(⇐)</h4>${pHtml(r.bwd)}<h4>Time</h4>${pHtml(r.time)}<h4>Example</h4>${pHtml(r.example)}${r.note?pHtml(r.note):''}${TPLID[r.id]?`<a class="tp-link" href="ProofTemplate.html#use-${TPLID[r.id]}">Write it as an exam proof →</a>`:''}`;
   return `<article class="glass-layer-strong algo" id="${r.id}">${head}
     <div class="viz" data-viz="${r.viz}"></div>
     <div class="algo-text"><div>${left}</div><div>${right}</div></div></article>`;
@@ -2173,7 +2252,7 @@ function glossaryCard(){
     ${tableHtml(['Term','Meaning'],GLOSSARY,false)}</article>`;
 }
 function hwCard([tag,name]){
-  return `<article class="glass-layer-strong algo later"><div class="card-header"><div><div class="project-type">${esc(tag)} · homework</div><h3 class="card-title">${esc(name)}</h3></div></div><div class="glass-layer todo">Notes not written yet. Add this once it is covered in class.</div></article>`;
+  return `<article class="glass-layer-strong algo later"><div class="card-header"><div><div class="project-type">${esc(tag)} · homework</div><h3 class="card-title">${esc(name)}</h3></div></div><div class="glass-layer todo">Notes not written yet. Add this once it is covered in class.</div>${name==='Clique → IS'?`<a class="tp-link" href="ProofTemplate.html#use-cliqueis">The exam proof is already in the template →</a>`:''}</article>`;
 }
 
 const SECS=[
@@ -2202,7 +2281,7 @@ function renderPage(){
   });
 
   const nav=document.getElementById('index');
-  nav.innerHTML=`<a href="index.html#foundations-h">Basics</a><a href="index.html#searching">Searching</a><a href="index.html#sorting">Sorting</a><a href="index.html#cheat-h">Cheat sheet</a><a href="index.html#complexity-h">Complexity</a><a href="index.html#recursion-h">Recursion</a><span class="sep"></span>`+SECS.map(S=>`<a href="#${S.id}-h" data-t="${S.id}">${S.nav}</a>`).join('')+`<span class="sep"></span>`+[...RED,...HWRED].map(r=>`<a href="#${r.id}" data-t="${r.id}">${r.name}</a>`).join('')+`<button type="button" id="theme"></button>`;
+  nav.innerHTML=`<a href="index.html#foundations-h">Basics</a><a href="index.html#searching">Searching</a><a href="index.html#sorting">Sorting</a><a href="index.html#cheat-h">Cheat sheet</a><a href="index.html#complexity-h">Complexity</a><a href="index.html#recursion-h">Recursion</a><span class="sep"></span>`+SECS.map(S=>`<a href="#${S.id}-h" data-t="${S.id}">${S.nav}</a>`).join('')+`<span class="sep"></span>`+[...RED,...HWRED].map(r=>`<a href="#${r.id}" data-t="${r.id}">${r.name}</a>`).join('')+`<span class="sep"></span><a href="ProofTemplate.html">Proof template</a><button type="button" id="theme"></button>`;
   const root=document.documentElement;
   const isDark=()=>root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
   const SUN='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
