@@ -494,6 +494,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .tp-link{display:inline-flex;align-items:center;gap:6px;margin-top:18px;font:500 13px 'JetBrains Mono',monospace;color:var(--ink);text-decoration:none;padding:9px 16px;border-radius:999px;border:1px solid var(--gb-strong);background:var(--glass-strong);transition:background .2s,color .2s}
 .tp-link:hover{background:var(--ink);color:var(--inv)}
 
+@media (min-width:641px){td.th{white-space:nowrap}}
+
 /* ---------- diagrams: shared palette + node/edge styles ---------- */
 :root{
   --d-blue:#2563EB;--d-green:#059669;--d-amber:#D97706;--d-rose:#E11D48;--d-violet:#7C3AED;--d-teal:#0891B2;
@@ -1024,6 +1026,59 @@ const HWRED=[
  example:[`G has V = {a, b, c, d, e} and edges a–b, a–c, b–c, c–d, d–e. Ḡ has the other 5 pairs: a–d, a–e, b–d, b–e, c–e.`,`With k = 3: {a, b, c} is a clique in G, and Ḡ has no edge among a, b, c, so it is an independent set of size 3. Both answers are Yes.`,`With k = 4: the largest clique of G has size 3, so the answer is No, and Ḡ has no independent set of size 4 either.`],
  note:[{nt:`The other direction`,b:`IS → Clique is the same construction, since complementing Ḡ gives back G. Combined with VC ↔ IS, this links Clique, IS and VC: each reduces to the others.`}]}];
 
+
+/* =====================================================================
+   Exact running times for every reduction: verification (B ∈ NP)
+   and construction of f(x). One source for the Reductions page and
+   the Proof Template page.
+   Notation: formulas have n variables, m clauses, L literal occurrences
+   (n′, m′ for the output 3CNF); circuits have i inputs and g gates, each with
+   fan-in ≤ 2; graphs have |V| vertices, |E| edges; k is the witness size.
+   ===================================================================== */
+const CX={
+ 'red-circuit':{A:'Circuit-SAT',B:'SAT',
+   ver:['O(n + L)','Read the assignment to the n variables, then evaluate every clause: one pass over the L literal occurrences. For the built formula n = i + g and L ≤ 7g + 1.'],
+   con:['Θ(i + g)','i + g variables (one per wire), at most 3g + 1 clauses and 7g + 1 literal occurrences, O(1) work per gate (gates have fan-in ≤ 2).']},
+ 'red-3sat':{A:'SAT',B:'3SAT',
+   ver:['O(n′ + m′)','Read the assignment to the n′ variables, then check the m′ clauses, each with exactly 3 literals: O(1) per clause.'],
+   con:['Θ(L)','A clause of size k becomes 4, 2, 1 or k − 2 clauses (k = 1, 2, 3, > 3), so m′ ≤ 4m + L = O(L) clauses (no clause is empty, so m ≤ L), each written in O(1).']},
+ 'red-hc':{A:'HC',B:'TSP',
+   ver:['O(|V|)','Check the tour lists each of the |V| vertices once (seen-array), then add its |V| weights from the weight matrix, O(1) each, and compare with k.'],
+   con:['Θ(|V|²)','Fill the |V| × |V| weight matrix with 2, then set the |E| edges of G to 1: Θ(|V|² + |E|) = Θ(|V|²).']},
+ 'red-clique':{A:'SAT',B:'Clique',
+   ver:['O(k²)','Check each of the k(k − 1)/2 pairs of the witness, O(1) each with an adjacency matrix.'],
+   con:['Θ(L²)','L vertices, one per literal occurrence; each of the L(L − 1)/2 pairs is tested once in O(1) (different clause? not complementary?).']},
+ 'red-vcis':{A:'VC',B:'IS',
+   ver:['O(|V| + |E|)','Mark and count the set\'s vertices (O(|V|)), then scan every edge and reject if both ends are marked (O(|E|)).'],
+   con:['Θ(|V| + |E|)','Copy G unchanged; the only computation is j = |V| − k, which is O(1).']},
+ 'red-vc':{A:'SAT',B:'VC',
+   ver:['O(|V| + |E|)','Mark and count the cover (O(|V|)), then check every edge has a marked end (O(|E|)).'],
+   con:['Θ(n + L + Σ|c|²)','2n + L vertices and n + Σ|c|(|c| − 1)/2 + L edges, O(1) each. This is O(n + L²), and linear when every clause has 3 literals.']},
+ 'red-dhc':{A:'HC',B:'Directed HC',
+   ver:['O(|V| + |E|)','Check the ordering lists each of the |V| vertices once and record each vertex\'s successor, then one pass over the 2|E| arcs confirms that all |V| consecutive pairs (last → first too) are arcs.'],
+   con:['Θ(|V| + |E|)','Copy the |V| vertices and write 2 arcs per edge: 2|E| arcs.']},
+ 'red-vc3':{A:'3SAT',B:'VC',
+   ver:['O(|V| + |E|)','Mark and count the cover, then check every edge. For the built graph this is O(n + m).'],
+   con:['Θ(n + m)','2n + 3m vertices and n + 6m edges, O(1) each.']},
+ 'red-3col':{A:'3SAT',B:'3Color',
+   ver:['O(|V| + |E|)','Check every vertex has one of the 3 colors (O(|V|)) and every edge has two different colors (O(|E|)). For the built graph this is O(n + m).'],
+   con:['Θ(n + m)','3 + 2n + 6m vertices and 3 + 3n + 12m edges, O(1) each.']},
+ 'red-cliqueis':{A:'Clique',B:'IS',
+   ver:['O(|V|²)','Mark and count the set, then scan the |V|(|V| − 1)/2 − |E| = O(|V|²) edges of Ḡ and reject if both ends are marked (or check its k(k − 1)/2 pairs, O(k²), with an adjacency matrix).'],
+   con:['Θ(|V|²)','Visit each of the |V|(|V| − 1)/2 pairs once and join it in Ḡ exactly when G does not; Ḡ gets |V|(|V| − 1)/2 − |E| edges.']}};
+
+const CX_HEAD=['Step','Bound','Why'];
+const cxRows=id=>{const c=CX[id];return [[`Verify ${c.B} (${c.B} ∈ NP)`,c.ver[0],c.ver[1]],[`Construct f(x) for ${c.A} ∝ₚ ${c.B}`,c.con[0],c.con[1]]];};
+
+/* add the same bounds to the topic cards that describe these reductions */
+if(typeof TOPICS!=='undefined'){
+  const add=(topic,rows)=>{const t=TOPICS.find(x=>x.id===topic);if(!t)return;t.cols[t.cols.length-1].push({table:{title:'Exact complexity',head:CX_HEAD,rows,th:true}});};
+  add('hc-tsp',cxRows('red-hc'));
+  add('clique',cxRows('red-clique'));
+  add('is-vc',[cxRows('red-vcis')[0],cxRows('red-vc')[0],cxRows('red-vcis')[1],cxRows('red-cliqueis')[1]]);
+  add('nphard-circuit',[cxRows('red-circuit')[0],cxRows('red-3sat')[0],cxRows('red-circuit')[1],cxRows('red-3sat')[1]]);
+  add('vc',cxRows('red-vc'));
+}
 
 /* =====================================================================
    Reduction visualizers
@@ -2241,7 +2296,7 @@ const TPLID={'red-circuit':'circuit','red-3sat':'sat3','red-hc':'hc','red-clique
 function redCard(r){
   const head=`<div class="card-header"><div><div class="project-type">${esc(r.tag)}</div><h3 class="card-title">${esc(r.name)}</h3><p class="card-subtitle">${esc(r.tagline)}</p></div><div class="io mono"><div><b>From</b>${esc(r.from)}</div><div><b>To</b>${esc(r.to)}</div></div></div>`;
   const left=`<h4>Problem</h4>${pHtml(r.problem)}${r.idea?`<h4>Idea</h4>${pHtml(r.idea)}`:''}${r.lemma?`<h4>Lemma</h4>${pHtml(r.lemma)}`:''}<h4>Construction</h4>${r.cintro?`<p>${esc(r.cintro)}</p>`:''}<ol class="mcase-list">${r.construction.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>${r.after?pHtml(r.after):''}<h4>Value of k</h4>${pHtml(r.k)}`;
-  const right=`<h4>In NP</h4>${pHtml(r.inNP)}<h4>(⇒)</h4>${pHtml(r.fwd)}<h4>(⇐)</h4>${pHtml(r.bwd)}<h4>Time</h4>${pHtml(r.time)}<h4>Example</h4>${pHtml(r.example)}${r.note?pHtml(r.note):''}${TPLID[r.id]?`<a class="tp-link" href="ProofTemplate.html#use-${TPLID[r.id]}">Write it as an exam proof →</a>`:''}`;
+  const right=`<h4>In NP</h4>${pHtml(r.inNP)}<h4>(⇒)</h4>${pHtml(r.fwd)}<h4>(⇐)</h4>${pHtml(r.bwd)}<h4>Complexity</h4>${CX[r.id]?tableHtml(CX_HEAD,cxRows(r.id),true):pHtml(r.time)}<h4>Example</h4>${pHtml(r.example)}${r.note?pHtml(r.note):''}${TPLID[r.id]?`<a class="tp-link" href="ProofTemplate.html#use-${TPLID[r.id]}">Write it as an exam proof →</a>`:''}`;
   return `<article class="glass-layer-strong algo" id="${r.id}">${head}
     <div class="viz" data-viz="${r.viz}"></div>
     <div class="algo-text"><div>${left}</div><div>${right}</div></div></article>`;
