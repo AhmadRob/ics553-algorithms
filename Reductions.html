@@ -496,6 +496,10 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 @media (min-width:641px){td.th{white-space:nowrap}}
 
+.cx-a{color:inherit;text-decoration:none;border-bottom:1px dashed var(--line)}
+.cx-a:hover{border-bottom-color:var(--ink)}
+#cx-cheat-card .io{max-width:460px}
+
 /* ---------- diagrams: shared palette + node/edge styles ---------- */
 :root{
   --d-blue:#2563EB;--d-green:#059669;--d-amber:#D97706;--d-rose:#E11D48;--d-violet:#7C3AED;--d-teal:#0891B2;
@@ -1036,34 +1040,34 @@ const HWRED=[
    fan-in ≤ 2; graphs have |V| vertices, |E| edges; k is the witness size.
    ===================================================================== */
 const CX={
- 'red-circuit':{A:'Circuit-SAT',B:'SAT',
+ 'red-circuit':{k:'none',size:'i + g variables, ≤ 3g + 1 clauses',A:'Circuit-SAT',B:'SAT',
    ver:['O(n + L)','Read the assignment to the n variables, then evaluate every clause: one pass over the L literal occurrences. For the built formula n = i + g and L ≤ 7g + 1.'],
    con:['Θ(i + g)','i + g variables (one per wire), at most 3g + 1 clauses and 7g + 1 literal occurrences, O(1) work per gate (gates have fan-in ≤ 2).']},
- 'red-3sat':{A:'SAT',B:'3SAT',
+ 'red-3sat':{k:'none',size:'m′ ≤ 4m + L clauses of 3 literals',A:'SAT',B:'3SAT',
    ver:['O(n′ + m′)','Read the assignment to the n′ variables, then check the m′ clauses, each with exactly 3 literals: O(1) per clause.'],
    con:['Θ(L)','A clause of size k becomes 4, 2, 1 or k − 2 clauses (k = 1, 2, 3, > 3), so m′ ≤ 4m + L = O(L) clauses (no clause is empty, so m ≤ L), each written in O(1).']},
- 'red-hc':{A:'HC',B:'TSP',
+ 'red-hc':{k:'|V|',size:'|V| vertices, |V|(|V| − 1)/2 weighted edges',A:'HC',B:'TSP',
    ver:['O(|V|)','Check the tour lists each of the |V| vertices once (seen-array), then add its |V| weights from the weight matrix, O(1) each, and compare with k.'],
    con:['Θ(|V|²)','Fill the |V| × |V| weight matrix with 2, then set the |E| edges of G to 1: Θ(|V|² + |E|) = Θ(|V|²).']},
- 'red-clique':{A:'SAT',B:'Clique',
+ 'red-clique':{k:'m',size:'L vertices, ≤ L(L − 1)/2 edges',A:'SAT',B:'Clique',
    ver:['O(k²)','Check each of the k(k − 1)/2 pairs of the witness, O(1) each with an adjacency matrix.'],
    con:['Θ(L²)','L vertices, one per literal occurrence; each of the L(L − 1)/2 pairs is tested once in O(1) (different clause? not complementary?).']},
- 'red-vcis':{A:'VC',B:'IS',
+ 'red-vcis':{k:'|V| − k',size:'the same G',A:'VC',B:'IS',
    ver:['O(|V| + |E|)','Mark and count the set\'s vertices (O(|V|)), then scan every edge and reject if both ends are marked (O(|E|)).'],
    con:['Θ(|V| + |E|)','Copy G unchanged; the only computation is j = |V| − k, which is O(1).']},
- 'red-vc':{A:'SAT',B:'VC',
+ 'red-vc':{k:'n + Σ(|c| − 1)',size:'2n + L vertices, n + Σ|c|(|c| − 1)/2 + L edges',A:'SAT',B:'VC',
    ver:['O(|V| + |E|)','Mark and count the cover (O(|V|)), then check every edge has a marked end (O(|E|)).'],
    con:['Θ(n + L + Σ|c|²)','2n + L vertices and n + Σ|c|(|c| − 1)/2 + L edges, O(1) each. This is O(n + L²), and linear when every clause has 3 literals.']},
- 'red-dhc':{A:'HC',B:'Directed HC',
+ 'red-dhc':{k:'none',size:'|V| vertices, 2|E| arcs',A:'HC',B:'Directed HC',
    ver:['O(|V| + |E|)','Check the ordering lists each of the |V| vertices once and record each vertex\'s successor, then one pass over the 2|E| arcs confirms that all |V| consecutive pairs (last → first too) are arcs.'],
    con:['Θ(|V| + |E|)','Copy the |V| vertices and write 2 arcs per edge: 2|E| arcs.']},
- 'red-vc3':{A:'3SAT',B:'VC',
+ 'red-vc3':{k:'n + 2m',size:'2n + 3m vertices, n + 6m edges',A:'3SAT',B:'VC',
    ver:['O(|V| + |E|)','Mark and count the cover, then check every edge. For the built graph this is O(n + m).'],
    con:['Θ(n + m)','2n + 3m vertices and n + 6m edges, O(1) each.']},
- 'red-3col':{A:'3SAT',B:'3Color',
+ 'red-3col':{k:'none (3 colors)',size:'3 + 2n + 6m vertices, 3 + 3n + 12m edges',A:'3SAT',B:'3Color',
    ver:['O(|V| + |E|)','Check every vertex has one of the 3 colors (O(|V|)) and every edge has two different colors (O(|E|)). For the built graph this is O(n + m).'],
    con:['Θ(n + m)','3 + 2n + 6m vertices and 3 + 3n + 12m edges, O(1) each.']},
- 'red-cliqueis':{A:'Clique',B:'IS',
+ 'red-cliqueis':{k:'k (unchanged)',size:'|V| vertices, |V|(|V| − 1)/2 − |E| edges',A:'Clique',B:'IS',
    ver:['O(|V|²)','Mark and count the set, then scan the |V|(|V| − 1)/2 − |E| = O(|V|²) edges of Ḡ and reject if both ends are marked (or check its k(k − 1)/2 pairs, O(k²), with an adjacency matrix).'],
    con:['Θ(|V|²)','Visit each of the |V|(|V| − 1)/2 pairs once and join it in Ḡ exactly when G does not; Ḡ gets |V|(|V| − 1)/2 − |E| edges.']}};
 
@@ -1078,6 +1082,25 @@ if(typeof TOPICS!=='undefined'){
   add('is-vc',[cxRows('red-vcis')[0],cxRows('red-vc')[0],cxRows('red-vcis')[1],cxRows('red-cliqueis')[1]]);
   add('nphard-circuit',[cxRows('red-circuit')[0],cxRows('red-3sat')[0],cxRows('red-circuit')[1],cxRows('red-3sat')[1]]);
   add('vc',cxRows('red-vc'));
+}
+
+/* ---------- cheat sheet: every reduction on one table ---------- */
+const CX_ORDER=['red-circuit','red-3sat','red-hc','red-clique','red-vcis','red-vc','red-dhc','red-vc3','red-3col','red-cliqueis'];
+function cxCheatHtml(){
+  const rows=CX_ORDER.map((id,i)=>{const c=CX[id];return `<tr><td><a class="cx-a" href="#${id}">${i+1}. ${c.A} ∝ₚ ${c.B}</a></td><td>${c.B}</td><td class="th">${c.ver[0]}</td><td class="th">${c.con[0]}</td><td>${c.k}</td><td class="mn">${c.size}</td></tr>`;}).join('');
+  return `<article class="glass-layer-strong algo" id="cx-cheat-card">
+    <div class="card-header"><div><div class="project-type">Cheat sheet</div><h3 class="card-title">Verification and construction times</h3><p class="card-subtitle">All ten reductions on one table. Verify = checking a witness for B ∈ NP. Construct = building f(x).</p></div>
+    <div class="io mono"><div><b>Formulas</b>n variables, m clauses, L literal occurrences</div><div><b>Circuits</b>i inputs, g gates (fan-in ≤ 2)</div><div><b>Graphs</b>|V| vertices, |E| edges; k = witness size</div></div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Reduction</th><th>Proves</th><th>Verify</th><th>Construct</th><th>k</th><th>Output size</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="algo-text"><div>
+      <h4>Verification rules of thumb</h4>
+      <ul class="mcase-list"><li>Assignment witness (SAT, 3SAT): read it and evaluate every clause, O(n + L).</li><li>Vertex-set witness (VC, IS): mark the set, then one scan over the edges, O(|V| + |E|).</li><li>Pairwise witness (Clique): check the k(k − 1)/2 pairs with an adjacency matrix, O(k²).</li><li>Ordering witness (HC, TSP, Directed HC): each vertex once plus |V| consecutive pairs, O(|V|) with a matrix, O(|V| + |E|) with lists.</li><li>Coloring witness (3Color): check every edge's two colors, O(|V| + |E|).</li></ul>
+    </div><div>
+      <h4>Construction rules of thumb</h4>
+      <ul class="mcase-list"><li>Construction time = Θ(size of f(x)): count the vertices and edges (or clauses) you write, O(1) each.</li><li>Gadget per item (variable, clause, gate, edge): linear, Θ(n + m), Θ(i + g) or Θ(|V| + |E|).</li><li>Testing every pair (Clique graph, complement, complete TSP graph): quadratic, Θ(L²) or Θ(|V|²).</li><li>Only a number changes (VC ↔ IS): copy the graph; the new bound is O(1).</li></ul>
+      <div class="nt"><b>In the exam</b><span>Write both: "f runs in Θ(…) because f(x) has … vertices and … edges", and "the verifier checks … in O(…)". Any polynomial is enough for the proof; the exact bound shows you counted.</span></div>
+    </div></div>
+  </article>`;
 }
 
 /* =====================================================================
@@ -2315,13 +2338,14 @@ const SECS=[
  {id:'np-basics',nav:'P &amp; NP',h:'Decision Problems, P and NP',sub:'Decision vs. optimization, polynomial time, P and NP.'},
  {id:'np-complete',nav:'NP-complete',h:'NP-Complete Problems',sub:'Reductions, the reduction map and the core NP-complete problems.'},
  {id:'co-np',nav:'Co-NP',h:'Co-NP',sub:'More NP-complete problems, complements, Co-NP and NP-intermediate.'},
- {id:'reductions',nav:'Reductions',h:'Reductions, Step by Step',sub:'NP-Completeness Study Guide by Ahmed Abualrob, KFUPM ICS 553, 10/15/2026. Each has a live visualizer: pick a preset or type your own instance.'}];
+ {id:'reductions',nav:'Reductions',h:'Reductions, Step by Step',sub:'NP-Completeness Study Guide by Ahmed Abualrob, KFUPM ICS 553, 10/15/2026. Each has a live visualizer: pick a preset or type your own instance.'},
+ {id:'cx-cheat',nav:'Complexity cheat sheet',h:'Complexity Cheat Sheet',sub:'Verification and construction times for every reduction, on one page.'}];
 
 function labelTables(){document.querySelectorAll('table').forEach(t=>{const h=[...t.querySelectorAll('thead th')].map(x=>x.textContent.trim());t.querySelectorAll('tbody tr').forEach(r=>[...r.children].forEach((td,i)=>{td.dataset.label=h[i]||'';}));});}
 function renderPage(){
   let h='';
   SECS.forEach(S=>{
-    const inner=S.id==='reductions'
+    const inner=S.id==='cx-cheat'?cxCheatHtml():S.id==='reductions'
       ?glossaryCard()+RED.map(redCard).join('')+`<div class="nt prof-intro"><b>Which reductions to study</b><span>${esc(HOMEWORK_INTRO)}</span></div>`+HWRED.map(redCard).join('')+HOMEWORK.map(hwCard).join('')
       :TOPICS.filter(t=>t.sec===S.id).map(t=>cardHtml(t,t.group)).join('');
     h+=`<section class="section" id="${S.id}">${secHead(S.id+'-h',S.h,S.sub)}${inner}</section>`;
