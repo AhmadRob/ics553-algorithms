@@ -494,6 +494,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .tp-link{display:inline-flex;align-items:center;gap:6px;margin-top:18px;font:500 13px 'JetBrains Mono',monospace;color:var(--ink);text-decoration:none;padding:9px 16px;border-radius:999px;border:1px solid var(--gb-strong);background:var(--glass-strong);transition:background .2s,color .2s}
 .tp-link:hover{background:var(--ink);color:var(--inv)}
 
+@media (min-width:641px){td.th{white-space:nowrap}}
+
 /* ---------- diagrams: shared palette + node/edge styles ---------- */
 :root{
   --d-blue:#2563EB;--d-green:#059669;--d-amber:#D97706;--d-rose:#E11D48;--d-violet:#7C3AED;--d-teal:#0891B2;
@@ -719,17 +721,17 @@ svg.dg{overflow:visible}
    ===================================================================== */
 const SLOTS=[
  {k:'goal', n:'Goal',            h:'blue',   frame:'To show B is NP-complete: show B ∈ NP, then reduce a known NP-complete problem A to B (A ∝ₚ B).'},
- {k:'np',   n:'B ∈ NP',          h:'teal',   frame:'Witness = ⟨what a Yes answer looks like⟩. Verifier = ⟨what to check⟩, in polynomial time.'},
+ {k:'np',   n:'B ∈ NP',          h:'teal',   frame:'Witness = ⟨what a Yes answer looks like⟩. Verifier = ⟨what to check⟩, in ⟨exact bound⟩.'},
  {k:'con',  n:'Construction',    h:'violet', frame:'Given any instance x of A, build the instance f(x) of B: ⟨the gadgets⟩.'},
  {k:'kk',   n:'Value of k',      h:'amber',  frame:'Set the bound of f(x) from x alone: ⟨formula⟩, or "none" if B has no bound.'},
- {k:'time', n:'Polynomial time', h:'teal',   frame:'f(x) has ⟨size⟩, so f runs in polynomial time.'},
+ {k:'time', n:'Polynomial time', h:'teal',   frame:'Building f(x) takes ⟨exact bound⟩ because f(x) has ⟨size⟩: polynomial.'},
  {k:'fwd',  n:'(⇒)',             h:'green',  frame:'x is Yes ⇒ f(x) is Yes: take a solution of x and build one for f(x).'},
  {k:'bwd',  n:'(⇐)',             h:'rose',   frame:'f(x) is Yes ⇒ x is Yes: take ANY solution of f(x) and read back one for x.'},
  {k:'end',  n:'Conclusion',      h:'blue',   frame:'B ∈ NP and A ∝ₚ B with A NP-complete, so B is NP-hard, hence NP-complete. ∎'}];
 
 const TPL=[
 {id:'circuit',ref:'red-circuit',num:1,A:'Circuit-SAT',B:'SAT',
- np:'Witness: a truth assignment. Verifier: evaluate every clause; linear in the formula size.',
+ np:'Witness: a truth assignment. Verifier: evaluate every clause.',
  con:'One variable per wire. Per gate: AND w = a ∧ b → (¬w ∨ a), (¬w ∨ b), (w ∨ ¬a ∨ ¬b). OR w = a ∨ b → (¬a ∨ w), (¬b ∨ w), (¬w ∨ a ∨ b). NOT w = ¬a → (¬w ∨ ¬a), (w ∨ a). Add the clause (out).',
  kk:'None: SAT has no bound.',
  time:'At most 3 clauses per gate, plus (out): linear in the circuit size.',
@@ -750,7 +752,7 @@ const TPL=[
  fwd:'A Hamiltonian cycle of G uses |V| edges of G, each of weight 1: a tour of weight |V| = k.',
  bwd:'Any tour has |V| edges of weight ≥ 1. Weight ≤ |V| forces every edge to weigh 1, so every edge is in G: a Hamiltonian cycle of G.'},
 {id:'clique',ref:'red-clique',num:4,A:'SAT',B:'Clique',
- np:'Witness: k vertices. Verifier: every pair is adjacent, O(k²).',
+ np:'Witness: k vertices. Verifier: every pair is adjacent.',
  con:'One vertex (l, i) per literal occurrence l in clause Ci. Join (l, i) and (l′, j) exactly when i ≠ j and l′ ≠ ¬l.',
  kk:'k = m, the number of clauses.',
  time:'L vertices (L literal occurrences), so O(L²) pairs to test.',
@@ -785,7 +787,7 @@ const TPL=[
  fwd:'Cover each true literal (n). In each triangle leave out one true-literal vertex and cover the other 2 (2m). The left-out vertex\'s connection edge ends at a covered true literal.',
  bwd:'A cover of size ≤ k has exactly one of xi, ¬xi and 2 per triangle. Set covered literals true. Each triangle\'s left-out vertex forces its literal into the cover, so that literal is true.'},
 {id:'col3',ref:'red-3col',num:9,A:'3SAT',B:'3Color',
- np:'Witness: a coloring. Verifier: at most 3 colors and every edge\'s endpoints differ, O(|V| + |E|).',
+ np:'Witness: a coloring. Verifier: at most 3 colors and every edge\'s endpoints differ.',
  con:'Palette triangle T, F, B. Per variable: xi – ¬xi, both joined to B. OR gadget (a, b → r): p – a, q – b, triangle p – q – r. Per clause (a ∨ b ∨ c): r1 = OR(a, b), r2 = OR(r1, c), and join r2 to F and B.',
  kk:'None: the 3 is fixed.',
  time:'3 + 2n + 6m vertices and 3 + 3n + 12m edges: linear.',
@@ -809,13 +811,68 @@ const PITFALLS=[
  ['Membership','Show B ∈ NP with a witness and a polynomial verifier. NP-hard alone is not NP-complete.']];
 
 /* =====================================================================
+   Exact running times for every reduction: verification (B ∈ NP)
+   and construction of f(x). One source for the Reductions page and
+   the Proof Template page.
+   Notation: formulas have n variables, m clauses, L literal occurrences
+   (n′, m′ for the output 3CNF); circuits have i inputs and g gates, each with
+   fan-in ≤ 2; graphs have |V| vertices, |E| edges; k is the witness size.
+   ===================================================================== */
+const CX={
+ 'red-circuit':{A:'Circuit-SAT',B:'SAT',
+   ver:['O(n + L)','Read the assignment to the n variables, then evaluate every clause: one pass over the L literal occurrences. For the built formula n = i + g and L ≤ 7g + 1.'],
+   con:['Θ(i + g)','i + g variables (one per wire), at most 3g + 1 clauses and 7g + 1 literal occurrences, O(1) work per gate (gates have fan-in ≤ 2).']},
+ 'red-3sat':{A:'SAT',B:'3SAT',
+   ver:['O(n′ + m′)','Read the assignment to the n′ variables, then check the m′ clauses, each with exactly 3 literals: O(1) per clause.'],
+   con:['Θ(L)','A clause of size k becomes 4, 2, 1 or k − 2 clauses (k = 1, 2, 3, > 3), so m′ ≤ 4m + L = O(L) clauses (no clause is empty, so m ≤ L), each written in O(1).']},
+ 'red-hc':{A:'HC',B:'TSP',
+   ver:['O(|V|)','Check the tour lists each of the |V| vertices once (seen-array), then add its |V| weights from the weight matrix, O(1) each, and compare with k.'],
+   con:['Θ(|V|²)','Fill the |V| × |V| weight matrix with 2, then set the |E| edges of G to 1: Θ(|V|² + |E|) = Θ(|V|²).']},
+ 'red-clique':{A:'SAT',B:'Clique',
+   ver:['O(k²)','Check each of the k(k − 1)/2 pairs of the witness, O(1) each with an adjacency matrix.'],
+   con:['Θ(L²)','L vertices, one per literal occurrence; each of the L(L − 1)/2 pairs is tested once in O(1) (different clause? not complementary?).']},
+ 'red-vcis':{A:'VC',B:'IS',
+   ver:['O(|V| + |E|)','Mark and count the set\'s vertices (O(|V|)), then scan every edge and reject if both ends are marked (O(|E|)).'],
+   con:['Θ(|V| + |E|)','Copy G unchanged; the only computation is j = |V| − k, which is O(1).']},
+ 'red-vc':{A:'SAT',B:'VC',
+   ver:['O(|V| + |E|)','Mark and count the cover (O(|V|)), then check every edge has a marked end (O(|E|)).'],
+   con:['Θ(n + L + Σ|c|²)','2n + L vertices and n + Σ|c|(|c| − 1)/2 + L edges, O(1) each. This is O(n + L²), and linear when every clause has 3 literals.']},
+ 'red-dhc':{A:'HC',B:'Directed HC',
+   ver:['O(|V| + |E|)','Check the ordering lists each of the |V| vertices once and record each vertex\'s successor, then one pass over the 2|E| arcs confirms that all |V| consecutive pairs (last → first too) are arcs.'],
+   con:['Θ(|V| + |E|)','Copy the |V| vertices and write 2 arcs per edge: 2|E| arcs.']},
+ 'red-vc3':{A:'3SAT',B:'VC',
+   ver:['O(|V| + |E|)','Mark and count the cover, then check every edge. For the built graph this is O(n + m).'],
+   con:['Θ(n + m)','2n + 3m vertices and n + 6m edges, O(1) each.']},
+ 'red-3col':{A:'3SAT',B:'3Color',
+   ver:['O(|V| + |E|)','Check every vertex has one of the 3 colors (O(|V|)) and every edge has two different colors (O(|E|)). For the built graph this is O(n + m).'],
+   con:['Θ(n + m)','3 + 2n + 6m vertices and 3 + 3n + 12m edges, O(1) each.']},
+ 'red-cliqueis':{A:'Clique',B:'IS',
+   ver:['O(|V|²)','Mark and count the set, then scan the |V|(|V| − 1)/2 − |E| = O(|V|²) edges of Ḡ and reject if both ends are marked (or check its k(k − 1)/2 pairs, O(k²), with an adjacency matrix).'],
+   con:['Θ(|V|²)','Visit each of the |V|(|V| − 1)/2 pairs once and join it in Ḡ exactly when G does not; Ḡ gets |V|(|V| − 1)/2 − |E| edges.']}};
+
+const CX_HEAD=['Step','Bound','Why'];
+const cxRows=id=>{const c=CX[id];return [[`Verify ${c.B} (${c.B} ∈ NP)`,c.ver[0],c.ver[1]],[`Construct f(x) for ${c.A} ∝ₚ ${c.B}`,c.con[0],c.con[1]]];};
+
+/* add the same bounds to the topic cards that describe these reductions */
+if(typeof TOPICS!=='undefined'){
+  const add=(topic,rows)=>{const t=TOPICS.find(x=>x.id===topic);if(!t)return;t.cols[t.cols.length-1].push({table:{title:'Exact complexity',head:CX_HEAD,rows,th:true}});};
+  add('hc-tsp',cxRows('red-hc'));
+  add('clique',cxRows('red-clique'));
+  add('is-vc',[cxRows('red-vcis')[0],cxRows('red-vc')[0],cxRows('red-vcis')[1],cxRows('red-cliqueis')[1]]);
+  add('nphard-circuit',[cxRows('red-circuit')[0],cxRows('red-3sat')[0],cxRows('red-circuit')[1],cxRows('red-3sat')[1]]);
+  add('vc',cxRows('red-vc'));
+}
+
+/* =====================================================================
    Proof Template page
    ===================================================================== */
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function labelTables(){document.querySelectorAll('table').forEach(t=>{const h=[...t.querySelectorAll('thead th')].map(x=>x.textContent.trim());t.querySelectorAll('tbody tr').forEach(r=>[...r.children].forEach((td,i)=>{td.dataset.label=h[i]||'';}));});}
 function secHead(id,title,sub){return `<div class="sec-head" id="${id}"><h2 class="text-fluid-md">${title}</h2>${sub?`<p>${sub}</p>`:''}</div>`;}
 
-const fillOf=(r,k)=>k==='goal'?`Show ${r.B} is NP-complete: prove ${r.B} ∈ NP, then reduce ${r.A} (known NP-complete) to it: ${r.A} ∝ₚ ${r.B}.`
+const fillOf=(r,k)=>k==='np'?`${r.np} Verification: ${CX[r.ref].ver[0]}. ${CX[r.ref].ver[1]}`
+  :k==='time'?`Construction: ${CX[r.ref].con[0]}. ${CX[r.ref].con[1]}`
+  :k==='goal'?`Show ${r.B} is NP-complete: prove ${r.B} ∈ NP, then reduce ${r.A} (known NP-complete) to it: ${r.A} ∝ₚ ${r.B}.`
   :k==='end'?`${r.B} ∈ NP, and ${r.A} ∝ₚ ${r.B} with ${r.A} NP-complete, so ${r.B} is NP-hard and therefore NP-complete. ∎`:r[k];
 
 /* ---------- 1. the interactive template ---------- */
@@ -906,11 +963,11 @@ function buildTemplate(){
   function answer(){
     const r=TPL[st.sel];if(!r)return '';
     return [`Claim: ${r.B} is NP-complete.`,
-      `1. ${r.B} ∈ NP. ${r.np}`,
+      `1. ${r.B} ∈ NP. ${fillOf(r,'np')}`,
       `2. Reduction ${r.A} ∝ₚ ${r.B} (${r.A} is NP-complete).`,
       `   Construction: ${r.con}`,
       `   k: ${r.kk}`,
-      `   Time: ${r.time}`,
+      `   Time: ${fillOf(r,'time')}`,
       `3. (⇒) ${r.fwd}`,
       `4. (⇐) ${r.bwd}`,
       `5. ${fillOf(r,'end')}`].join('\n');
@@ -943,10 +1000,10 @@ function buildTemplate(){
 
 /* ---------- 2. all ten at a glance ---------- */
 function glanceCard(){
-  const head=['Reduction','Proves','Construction','k','Size'];
-  const rows=TPL.map(r=>`<tr><td><b>${r.num}. ${esc(r.A)} ∝ₚ ${esc(r.B)}</b></td><td>${esc(r.B)} NP-complete</td><td>${esc(r.con)}</td><td class="th">${esc(r.kk)}</td><td class="mn">${esc(r.time)}</td></tr>`).join('');
+  const head=['Reduction','Proves','Construction','k','Verify','Construct'];
+  const rows=TPL.map(r=>`<tr><td><b>${r.num}. ${esc(r.A)} ∝ₚ ${esc(r.B)}</b></td><td>${esc(r.B)} NP-complete</td><td>${esc(r.con)}</td><td>${esc(r.kk)}</td><td class="th">${esc(CX[r.ref].ver[0])}</td><td class="th">${esc(CX[r.ref].con[0])}</td></tr>`).join('');
   return `<article class="glass-layer-strong algo" id="glance-card">
-    <div class="card-header"><div><div class="project-type">Overview</div><h3 class="card-title">The template, filled in ten times</h3><p class="card-subtitle">Same structure every time; only the construction, k and size change.</p></div></div>
+    <div class="card-header"><div><div class="project-type">Overview</div><h3 class="card-title">The template, filled in ten times</h3><p class="card-subtitle">Same structure every time; only the construction, k and the two running times change.</p></div></div>
     <div class="tbl-wrap"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
   </article>`;
 }
